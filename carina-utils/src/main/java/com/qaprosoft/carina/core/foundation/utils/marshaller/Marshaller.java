@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2013-2020 QaProSoft (http://www.qaprosoft.com).
+ * Copyright 2020-2022 Zebrunner Inc (https://www.zebrunner.com).
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,6 +50,8 @@ class Marshaller {
 
     /**
      * Get instance for Marshaller
+     *
+     * @return Marshaller
      */
     static Marshaller getInstance() {
         if (null == instance) {
@@ -75,7 +77,7 @@ class Marshaller {
             }
             return contextCache.get(clazz);
         } catch (JAXBException e) {
-            LOGGER.error(e.getMessage(), e);
+            LOGGER.error("Cant create new instance of JAXBContext!", e);
             throw new RuntimeException(e);
         }
     }
@@ -95,7 +97,7 @@ class Marshaller {
             return marshaller;
 
         } catch (JAXBException e) {
-            LOGGER.error(e.getMessage(), e);
+            LOGGER.error("Error while creating marshaller!", e);
             throw new RuntimeException(e);
         }
     }
@@ -116,7 +118,7 @@ class Marshaller {
             return unmarshaller;
 
         } catch (JAXBException e) {
-            LOGGER.error(e.getMessage(), e);
+            LOGGER.error("Error while creating unmarshaller!", e);
             throw new RuntimeException(e);
         }
     }
@@ -127,7 +129,7 @@ class Marshaller {
 
             return (T) getUnmarshaller(resultClazz).unmarshal(source);
         } catch (JAXBException e) {
-            LOGGER.error(e.getMessage(), e);
+            LOGGER.error("Error while unmarshalling!", e);
             throw new RuntimeException(e);
         }
     }
@@ -138,7 +140,7 @@ class Marshaller {
 
             return (T) getUnmarshaller(resultClazz).unmarshal(new ByteArrayInputStream(string.getBytes()));
         } catch (JAXBException e) {
-            LOGGER.error(e.getMessage(), e);
+            LOGGER.error("Error while unmarshalling!", e);
             throw new RuntimeException(e);
         }
     }
@@ -148,7 +150,7 @@ class Marshaller {
         try {
             return (T) getUnmarshaller(resultClazz).unmarshal(file);
         } catch (JAXBException e) {
-            LOGGER.error(e.getMessage(), e);
+            LOGGER.error("Error while unmarshalling!", e);
             throw new RuntimeException(e);
         }
     }
@@ -158,7 +160,7 @@ class Marshaller {
         try {
             return (T) getUnmarshaller(resultClazz).unmarshal(is);
         } catch (JAXBException e) {
-            LOGGER.error(e.getMessage(), e);
+            LOGGER.error("Error while unmarshalling", e);
             throw new RuntimeException(e);
         }
     }
@@ -168,7 +170,7 @@ class Marshaller {
             getMarshaller(jaxbElement.getClass()).marshal(jaxbElement,
                     paramResult);
         } catch (JAXBException e) {
-            LOGGER.error(e.getMessage(), e);
+            LOGGER.error("Error while marshalling!", e);
             throw new RuntimeException(e);
         }
 
@@ -178,7 +180,7 @@ class Marshaller {
         try {
             getMarshaller(jaxbElement.getClass()).marshal(jaxbElement, writer);
         } catch (JAXBException e) {
-            LOGGER.error(e.getMessage(), e);
+            LOGGER.error("Error while marshalling!", e);
             throw new RuntimeException(e);
         }
 
@@ -190,7 +192,7 @@ class Marshaller {
             getMarshaller(jaxbElement.getClass()).marshal(jaxbElement, w);
             return w.toString();
         } catch (JAXBException e) {
-            LOGGER.error(e.getMessage(), e);
+            LOGGER.error("Error while marshalling!", e);
             throw new RuntimeException(e);
         }
 

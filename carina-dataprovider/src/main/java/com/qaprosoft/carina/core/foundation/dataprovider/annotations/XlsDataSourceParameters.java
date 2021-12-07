@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2013-2020 QaProSoft (http://www.qaprosoft.com).
+ * Copyright 2020-2022 Zebrunner Inc (https://www.zebrunner.com).
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,11 +27,15 @@ public @interface XlsDataSourceParameters {
 
     /**
      * Is mutually exclusive with spreadsheetId
+     *
+     * @return String
      */
     String path() default "";
 
     /**
      * Is mutually exclusive with path
+     *
+     * @return String
      */
     String spreadsheetId() default "";
 
@@ -48,8 +52,6 @@ public @interface XlsDataSourceParameters {
     String staticArgs() default "";
 
     String groupColumn() default "";
-
-    String jiraColumn() default "";
 
     String testRailColumn() default "";
 

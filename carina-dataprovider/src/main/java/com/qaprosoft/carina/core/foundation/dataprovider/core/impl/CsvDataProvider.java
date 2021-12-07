@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2013-2020 QaProSoft (http://www.qaprosoft.com).
+ * Copyright 2020-2022 Zebrunner Inc (https://www.zebrunner.com).
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,7 +48,6 @@ public class CsvDataProvider extends BaseDataProvider {
 
     private String executeColumn;
     private String executeValue;
-    private String jiraColumn;
     private String testRailColumn;
     private String testMethodColumn;
     private String testMethodOwnerColumn;
@@ -70,7 +69,6 @@ public class CsvDataProvider extends BaseDataProvider {
         separator = parameters.separator();
         quote = parameters.quote();
 
-        jiraColumn = parameters.jiraColumn();
         testRailColumn = parameters.testRailColumn();
 
         if (!parameters.qTestColumn().isEmpty() && testRailColumn.isEmpty())
@@ -185,12 +183,6 @@ public class CsvDataProvider extends BaseDataProvider {
             // add testMethoOwner from xls datasource to special hashMap
             addValueToSpecialMap(testMethodOwnerArgsMap, testMethodOwnerColumn, String.valueOf(Arrays.hashCode(args[rowIndex])), csvRow);
 
-            // add jira ticket from xls datasource to special hashMap
-            addValueToSpecialMap(jiraArgsMap, jiraColumn, String.valueOf(Arrays.hashCode(args[rowIndex])), csvRow);
-
-            // add bug id from csv datasource to special hashMap
-            addValueToSpecialMap(bugArgsMap, bugColumn, String.valueOf(Arrays.hashCode(args[rowIndex])), csvRow);
-
             // add testrails cases from xls datasource to special hashMap
             addValueToSpecialMap(testRailsArgsMap, testRailColumn, String.valueOf(Arrays.hashCode(args[rowIndex])), csvRow);
 
@@ -203,7 +195,6 @@ public class CsvDataProvider extends BaseDataProvider {
     /*
      * obligatory add to mapper all columns for DataProvider artifacts like:
      * executeColumn - filter column
-     * jiraColumn
      * testRailColumn
      * testMethodColumn
      * testMethodOwnerColumn
@@ -223,7 +214,6 @@ public class CsvDataProvider extends BaseDataProvider {
         }
 
         mapper.put(executeColumn, getIndex(executeColumn, headers));
-        mapper.put(jiraColumn, getIndex(jiraColumn, headers));
         mapper.put(testRailColumn, getIndex(testRailColumn, headers));
         mapper.put(testMethodColumn, getIndex(testMethodColumn, headers));
         mapper.put(testMethodOwnerColumn, getIndex(testMethodOwnerColumn, headers));

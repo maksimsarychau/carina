@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2013-2020 QaProSoft (http://www.qaprosoft.com).
+ * Copyright 2020-2022 Zebrunner Inc (https://www.zebrunner.com).
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,8 +30,6 @@ import com.qaprosoft.carina.core.foundation.commons.SpecialKeywords;
 import com.qaprosoft.carina.core.foundation.report.ReportContext;
 import com.qaprosoft.carina.core.foundation.report.TestResultItem;
 import com.qaprosoft.carina.core.foundation.report.TestResultType;
-import com.qaprosoft.carina.core.foundation.utils.Configuration;
-import com.qaprosoft.carina.core.foundation.utils.Configuration.Parameter;
 import com.qaprosoft.carina.core.foundation.utils.R;
 
 /**
@@ -46,12 +44,10 @@ public class EmailReportGenerator {
     private static String PACKAGE_TR = R.EMAIL.get("package_tr");
     private static String PASS_TEST_LOG_DEMO_TR = R.EMAIL.get("pass_test_log_demo_tr");
     private static String FAIL_TEST_LOG_DEMO_TR = R.EMAIL.get("fail_test_log_demo_tr");
-    private static String BUG_TEST_LOG_DEMO_TR = R.EMAIL.get("bug_test_log_demo_tr");
     private static String SKIP_TEST_LOG_DEMO_TR = R.EMAIL.get("skip_test_log_demo_tr");
     private static String FAIL_CONFIG_LOG_DEMO_TR = R.EMAIL.get("fail_config_log_demo_tr");
     private static String PASS_TEST_LOG_TR = R.EMAIL.get("pass_test_log_tr");
     private static String FAIL_TEST_LOG_TR = R.EMAIL.get("fail_test_log_tr");
-    private static String BUG_TEST_LOG_TR = R.EMAIL.get("bug_test_log_tr");
     private static String SKIP_TEST_LOG_TR = R.EMAIL.get("skip_test_log_tr");
     private static String FAIL_CONFIG_LOG_TR = R.EMAIL.get("fail_config_log_tr");
     private static String CREATED_ITEMS_LIST = R.EMAIL.get("created_items_list");
@@ -76,11 +72,13 @@ public class EmailReportGenerator {
     private static final String LOG_URL_PLACEHOLDER = "${log_url}";
     private static final String CREATED_ITEMS_LIST_PLACEHOLDER = "${created_items_list}";
     private static final String CREATED_ITEM_PLACEHOLDER = "${created_item}";
-    private static final String BUG_URL_PLACEHOLDER = "${bug_url}";
     private static final int MESSAGE_LIMIT = R.EMAIL.getInt("fail_description_limit");
     
     // Cucumber section
     private static final String CUCUMBER_RESULTS_PLACEHOLDER = "${cucumber_results}";
+
+    // Artifacts section
+    private static final String ARTIFACTS_RESULTS_PLACEHOLDER = "${artifacts}";
 
     private static boolean INCLUDE_PASS = R.EMAIL.getBoolean("include_pass");
     private static boolean INCLUDE_FAIL = R.EMAIL.getBoolean("include_fail");
@@ -109,7 +107,10 @@ public class EmailReportGenerator {
         emailBody = emailBody.replace(CREATED_ITEMS_LIST_PLACEHOLDER, getCreatedItemsList(createdItems));
         
         // Cucumber section
-        emailBody = emailBody.replace(CUCUMBER_RESULTS_PLACEHOLDER, getCucumberResults());
+        emailBody = emailBody.replace(CUCUMBER_RESULTS_PLACEHOLDER, getCucumberResultsHTML());
+
+        // Artifacts section
+        emailBody = emailBody.replace(ARTIFACTS_RESULTS_PLACEHOLDER, getArtifactsLinkHTML());
     }
 
     public String getEmailBody() {
@@ -118,11 +119,7 @@ public class EmailReportGenerator {
 
     private String getTestResultsList(List<TestResultItem> testResultItems) {
         if (testResultItems.size() > 0) {
-            if (Configuration.getBoolean(Parameter.RESULT_SORTING)) {
-
-                // TODO: identify way to synch config failure with testNG method
-                Collections.sort(testResultItems, new EmailReportItemComparator());
-            }
+            Collections.sort(testResultItems, new EmailReportItemComparator());
 
             String packageName = "";
             testResults = new StringBuilder();
@@ -143,7 +140,7 @@ public class EmailReportGenerator {
         if (testResultItem.getResult().name().equalsIgnoreCase("FAIL")) {
             if (INCLUDE_FAIL) {
                 if (testResultItem.isConfig()) {
-                    result = testResultItem.getLinkToScreenshots() != null ? FAIL_CONFIG_LOG_DEMO_TR : FAIL_CONFIG_LOG_TR;
+                    result = testResultItem.getLinkToScreenshots() != null && !"".equals(testResultItem.getLinkToScreenshots()) ? FAIL_CONFIG_LOG_DEMO_TR : FAIL_CONFIG_LOG_TR;
                     result = result.replace(TEST_NAME_PLACEHOLDER, testResultItem.getTest());
 
                     failReason = testResultItem.getFailReason();
@@ -155,12 +152,7 @@ public class EmailReportGenerator {
                         result = result.replace(FAIL_CONFIG_REASON_PLACEHOLDER, "Undefined failure: contact qa engineer!");
                     }
                 } else {
-                    if (Configuration.getBoolean(Parameter.TRACK_KNOWN_ISSUES) && !testResultItem.getJiraTickets().isEmpty()) {
-                        result = testResultItem.getLinkToScreenshots() != null ? BUG_TEST_LOG_DEMO_TR : BUG_TEST_LOG_TR;
-                    } else {
-                        result = testResultItem.getLinkToScreenshots() != null ? FAIL_TEST_LOG_DEMO_TR : FAIL_TEST_LOG_TR;
-                    }
-
+                    result = testResultItem.getLinkToScreenshots() != null && !"".equals(testResultItem.getLinkToScreenshots()) ? FAIL_TEST_LOG_DEMO_TR : FAIL_TEST_LOG_TR;
                     result = result.replace(TEST_NAME_PLACEHOLDER, testResultItem.getTest());
 
                     failReason = testResultItem.getFailReason();
@@ -179,17 +171,14 @@ public class EmailReportGenerator {
                     result = result.replace(SCREENSHOTS_URL_PLACEHOLDER, testResultItem.getLinkToScreenshots());
                 }
             }
-
-            if (Configuration.getBoolean(Parameter.TRACK_KNOWN_ISSUES) && !testResultItem.getJiraTickets().isEmpty()) {
-                // do nothing
-            } else
-                failCount++;
+            failCount++;
         }
+
         if (testResultItem.getResult().name().equalsIgnoreCase("SKIP")) {
             failReason = testResultItem.getFailReason();
             if (!testResultItem.isConfig()) {
                 if (INCLUDE_SKIP) {
-                    result = testResultItem.getLinkToScreenshots() != null ? SKIP_TEST_LOG_DEMO_TR : SKIP_TEST_LOG_TR;
+                    result = testResultItem.getLinkToScreenshots() != null && !"".equals(testResultItem.getLinkToScreenshots()) ? SKIP_TEST_LOG_DEMO_TR : SKIP_TEST_LOG_TR;
                     result = result.replace(TEST_NAME_PLACEHOLDER, testResultItem.getTest());
 
                     if (!StringUtils.isEmpty(failReason)) {
@@ -216,7 +205,7 @@ public class EmailReportGenerator {
             if (!testResultItem.isConfig()) {
                 passCount++;
                 if (INCLUDE_PASS) {
-                    result = testResultItem.getLinkToScreenshots() != null ? PASS_TEST_LOG_DEMO_TR : PASS_TEST_LOG_TR;
+                    result = testResultItem.getLinkToScreenshots() != null && !"".equals(testResultItem.getLinkToScreenshots()) ? PASS_TEST_LOG_DEMO_TR : PASS_TEST_LOG_TR;
                     result = result.replace(TEST_NAME_PLACEHOLDER, testResultItem.getTest());
                     result = result.replace(LOG_URL_PLACEHOLDER, testResultItem.getLinkToLog());
 
@@ -226,21 +215,6 @@ public class EmailReportGenerator {
                 }
             }
         }
-
-        // generate valid url or just a number
-        List<String> jiraTickets = testResultItem.getJiraTickets();
-        String bugUrl = "";
-        for (String bugId : jiraTickets) {
-            if (!Configuration.get(Parameter.JIRA_URL).isEmpty()) {
-                bugUrl += "<a target='_blank' href='" + Configuration.get(Parameter.JIRA_URL) + "/browse/" + bugId + "' style='color: white;'>"
-                        + bugId + "</a>";
-            } else {
-                bugUrl += bugId;
-            }
-            bugUrl += "<br>";
-        }
-        result = result.replace(BUG_URL_PLACEHOLDER, bugUrl);
-        
         return result;
     }
 
@@ -265,16 +239,7 @@ public class EmailReportGenerator {
                 passed++;
                 break;
             case FAIL:
-                if (Configuration.getBoolean(Parameter.TRACK_KNOWN_ISSUES)) {
-                    if (ri.getJiraTickets().size() > 0) {
-                        // increment known issue counter
-                        failedKnownIssue++;
-                    } else {
-                        failed++;
-                    }
-                } else {
-                    failed++;
-                }
+               failed++;
                 break;
             case SKIP:
                 skipped++;
@@ -328,14 +293,36 @@ public class EmailReportGenerator {
         return reasonText;
     }
 
-    private String getCucumberResults() {
+    /**
+     * Get HTML block for link to artifacts folder in local file system
+     * 
+     * @return generated HTML block
+     */
+    private String getArtifactsLinkHTML() {
+        String result = "";
+
+        if (!ReportContext.getAllArtifacts().isEmpty()) {
+
+            String link = ReportContext.getTestArtifactsLink();
+            LOGGER.debug("Artifacts gallery link: " + link);
+            result = String.format(
+                    "<br/><b><a href='%s' style='color: black;' target='_blank' style='display: block'> Open Artifacts gallery in a new tab</a></b><br/>",
+                    link);
+            LOGGER.debug("Artifacts gallery: " + result);
+        }
+
+        return result;
+    }
+
+    private String getCucumberResultsHTML() {
         String result = "";
 
         if (isCucumberReportFolderExists()) {
 
             String link = ReportContext.getCucumberReportLink();
             LOGGER.debug("Cucumber Report link: " + link);
-            result = String.format("<br/><b><a href='%s' style='color: green;' target='_blank'> Open Cucumber Report in new Window </a></b><br/>",
+            result = String.format(
+                    "<br/><b><a href='%s' style='color: green;' target='_blank' style='display: block'> Open Cucumber Report in a new tab</a></b><br/>",
                     link);
             LOGGER.debug("Cucumber result: " + result);
         }

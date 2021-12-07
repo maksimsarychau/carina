@@ -1,36 +1,21 @@
 #set( $symbol_pound = '#' )
 #set( $symbol_dollar = '$' )
 #set( $symbol_escape = '\' )
-/*
- * Copyright 2013-2020 QAPROSOFT (http://qaprosoft.com/).
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package ${package}.carina.demo;
 
 import java.util.List;
 
-import com.qaprosoft.carina.core.foundation.utils.tag.Priority;
-import com.qaprosoft.carina.core.foundation.utils.tag.TestPriority;
-import com.qaprosoft.carina.core.foundation.utils.tag.TestTag;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.testng.Assert;
 import org.testng.annotations.Test;
+import org.testng.asserts.SoftAssert;
 
-import com.qaprosoft.carina.core.foundation.AbstractTest;
-import com.qaprosoft.carina.core.foundation.dataprovider.annotations.XlsDataSourceParameters;
+import com.qaprosoft.carina.core.foundation.IAbstractTest;
+import com.zebrunner.agent.core.annotation.TestLabel;
 import com.qaprosoft.carina.core.foundation.utils.ownership.MethodOwner;
+import com.qaprosoft.carina.core.foundation.utils.tag.Priority;
+import com.qaprosoft.carina.core.foundation.utils.tag.TestPriority;
 import ${package}.carina.demo.gui.components.FooterMenu;
 import ${package}.carina.demo.gui.components.NewsItem;
 import ${package}.carina.demo.gui.components.compare.ModelSpecs;
@@ -46,39 +31,39 @@ import ${package}.carina.demo.gui.pages.NewsPage;
  *
  * @author qpsdemo
  */
-public class WebSampleTest extends AbstractTest {
-    @Test(dataProvider = "SingleDataProvider", description = "JIRA${symbol_pound}AUTO-0008")
+public class WebSampleTest implements IAbstractTest {
+    @Test()
     @MethodOwner(owner = "qpsdemo")
     @TestPriority(Priority.P3)
-    @TestTag(name = "area test", value = "data provider")
-    @TestTag(name = "specialization", value = "xlsx")
-    @XlsDataSourceParameters(path = "xls/demo.xlsx", sheet = "GSMArena", dsUid = "TUID", dsArgs = "brand, model, display, camera, ram, battery")
-    public void testModelSpecs(String brand, String model, String display, String camera, String ram, String battery) {
+    @TestLabel(name = "feature", value = {"web", "regression"})
+    public void testModelSpecs() {
         // Open GSM Arena home page and verify page is opened
         HomePage homePage = new HomePage(getDriver());
         homePage.open();
         Assert.assertTrue(homePage.isPageOpened(), "Home page is not opened");
-
+        
         //Closing advertising if it's displayed
         homePage.getWeValuePrivacyAd().closeAdIfPresent();
-
+        
         // Select phone brand
         homePage = new HomePage(getDriver());
-        BrandModelsPage productsPage = homePage.selectBrand(brand);
+        BrandModelsPage productsPage = homePage.selectBrand("Samsung");
         // Select phone model
-        ModelInfoPage productInfoPage = productsPage.selectModel(model);
+        ModelInfoPage productInfoPage = productsPage.selectModel("Galaxy A52 5G");
         // Verify phone specifications
-        Assert.assertEquals(productInfoPage.readDisplay(), display, "Invalid display info!");
-        Assert.assertEquals(productInfoPage.readCamera(), camera, "Invalid camera info!");
-        Assert.assertEquals(productInfoPage.readRam(), ram, "Invalid ram info!");
-        Assert.assertEquals(productInfoPage.readBattery(), battery, "Invalid battery info!");
+        SoftAssert softAssert = new SoftAssert();
+        softAssert.assertEquals(productInfoPage.readDisplay(), "6.5\"", "Invalid display info!");
+        softAssert.assertEquals(productInfoPage.readCamera(), "64MP", "Invalid camera info!");
+        softAssert.assertEquals(productInfoPage.readRam(), "6/8GB RAM", "Invalid ram info!");
+        softAssert.assertEquals(productInfoPage.readBattery(), "4500mAh", "Invalid battery info!");
+        softAssert.assertAll();
     }
 
 
-    @Test(description = "JIRA${symbol_pound}AUTO-0009")
+    @Test()
     @MethodOwner(owner = "qpsdemo")
     @TestPriority(Priority.P1)
-    @TestTag(name = "area test", value = "web")
+    @TestLabel(name = "feature", value = {"web", "acceptance"})
     public void testCompareModels() {
         // Open GSM Arena home page and verify page is opened
         HomePage homePage = new HomePage(getDriver());
@@ -91,28 +76,34 @@ public class WebSampleTest extends AbstractTest {
         // Compare 3 models
         List<ModelSpecs> specs = comparePage.compareModels("Samsung Galaxy J3", "Samsung Galaxy J5", "Samsung Galaxy J7 Pro");
         // Verify model announced dates
-        Assert.assertEquals(specs.get(0).readSpec(SpecType.ANNOUNCED), "2016, March 31");
-        Assert.assertEquals(specs.get(1).readSpec(SpecType.ANNOUNCED), "2015, June 19");
-        Assert.assertEquals(specs.get(2).readSpec(SpecType.ANNOUNCED), "2017, June");
+        SoftAssert softAssert = new SoftAssert();
+        softAssert.assertEquals(specs.get(0).readSpec(SpecType.ANNOUNCED), "2016, March 31");
+        softAssert.assertEquals(specs.get(1).readSpec(SpecType.ANNOUNCED), "2015, June 19");
+        softAssert.assertEquals(specs.get(2).readSpec(SpecType.ANNOUNCED), "2017, June");
+        softAssert.assertAll();
     }
-
-    @Test(description = "JIRA${symbol_pound}AUTO-0010")
+    
+    @Test()
     @MethodOwner(owner = "qpsdemo")
+    @TestLabel(name = "feature", value = {"web", "acceptance"})
     public void testNewsSearch() {
         HomePage homePage = new HomePage(getDriver());
         homePage.open();
         Assert.assertTrue(homePage.isPageOpened(), "Home page is not opened!");
-
+        
         NewsPage newsPage = homePage.getFooterMenu().openNewsPage();
         Assert.assertTrue(newsPage.isPageOpened(), "News page is not opened!");
-
+        
         final String searchQ = "iphone";
         List<NewsItem> news = newsPage.searchNews(searchQ);
         Assert.assertFalse(CollectionUtils.isEmpty(news), "News not found!");
+        SoftAssert softAssert = new SoftAssert();
         for(NewsItem n : news) {
             System.out.println(n.readTitle());
-            Assert.assertTrue(StringUtils.containsIgnoreCase(n.readTitle(), searchQ), "Invalid search results!");
+            softAssert.assertTrue(StringUtils.containsIgnoreCase(n.readTitle(), searchQ),
+                    "Invalid search results for " + n.readTitle());
         }
+        softAssert.assertAll();
     }
 
 }

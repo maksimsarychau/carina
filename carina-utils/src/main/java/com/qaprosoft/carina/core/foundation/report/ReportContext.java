@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2013-2020 QaProSoft (http://www.qaprosoft.com).
+ * Copyright 2020-2022 Zebrunner Inc (https://www.zebrunner.com).
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -92,8 +92,8 @@ public class ReportContext {
 
     private static long rootID;
 
-    private static final ThreadLocal<File> testDirectory = new ThreadLocal<File>();
-    private static final ThreadLocal<Boolean> isCustomTestDirName = new ThreadLocal<Boolean>();
+    private static final ThreadLocal<File> testDirectory = new InheritableThreadLocal<>();
+    private static final ThreadLocal<Boolean> isCustomTestDirName = new InheritableThreadLocal<Boolean>();
 
     private static final ExecutorService executor = Executors.newCachedThreadPool();
 
@@ -110,7 +110,7 @@ public class ReportContext {
      * 
      * @return root screenshot folder for test launch.
      */
-    public static synchronized File getBaseDir() {
+    public static File getBaseDir() {
         try {
             if (baseDirectory == null) {
                 removeOldReports();
@@ -242,6 +242,10 @@ public class ReportContext {
      * @return artifact File
      */
     public static File downloadArtifact(WebDriver driver, String name, long timeout) {
+        return downloadArtifact(driver, name, timeout, true);
+    }
+
+    public static File downloadArtifact(WebDriver driver, String name, long timeout, boolean artifact) {
         File file = getArtifact(name);
         if (file == null) {
             // attempt to verify and download file from selenoid
@@ -265,7 +269,9 @@ public class ReportContext {
             try {
                 FileUtils.copyURLToFile(new URL(url), file);
                 LOGGER.debug("Successfully downloaded artifact: " + name);
-                Artifact.attachToTest(name, file); // publish as test artifact to Zebrunner Reporting
+                if (artifact) {
+                    Artifact.attachToTest(name, file); // publish as test artifact to Zebrunner Reporting
+                }
             } catch (IOException e) {
                 LOGGER.error("Artifact: " + url + " wasn't downloaded to " + path, e);
             }
@@ -360,7 +366,7 @@ public class ReportContext {
      * @return String
      */
     private static String getUrl(WebDriver driver, String name) {
-        String seleniumHost = Configuration.get(Parameter.SELENIUM_HOST).replace("wd/hub", "download/");
+        String seleniumHost = Configuration.getSeleniumUrl().replace("wd/hub", "download/");
         WebDriver drv = (driver instanceof EventFiringWebDriver) ? ((EventFiringWebDriver) driver).getWrappedDriver() : driver;
         String sessionId = ((RemoteWebDriver) drv).getSessionId().toString();
         String url = seleniumHost + sessionId + "/" + name;
@@ -423,20 +429,8 @@ public class ReportContext {
     public static File getTestDir(String dirName) {
         File testDir = testDirectory.get();
         if (testDir == null) {
-            String uniqueDirName = UUID.randomUUID().toString();
-            if (!dirName.isEmpty()) {
-                uniqueDirName = dirName;
-            }
-            String directory = String.format("%s/%s", getBaseDir(), uniqueDirName);
-
-            testDir = new File(directory);
-
-            if (!testDir.mkdirs()) {
-                throw new RuntimeException("Test Folder(s) not created: " + testDir.getAbsolutePath());
-            }
+            testDir = createTestDir(dirName);
         }
-
-        testDirectory.set(testDir);
         return testDir;
     }
 
@@ -467,6 +461,26 @@ public class ReportContext {
         closeThreadLogAppender();
     }
 
+    public static synchronized File createTestDir() {
+        return createTestDir(UUID.randomUUID().toString());
+    }
+
+    public static synchronized File createTestDir(String dirName) {
+        File testDir;
+        String directory = String.format("%s/%s", getBaseDir(), dirName);
+
+        testDir = new File(directory);
+        if (!testDir.exists()) {
+            testDir.mkdirs();
+            if (!testDir.exists()) {
+                throw new RuntimeException("Test Folder(s) not created: " + testDir.getAbsolutePath());
+            }
+        }
+        
+        testDirectory.set(testDir);
+        return testDir;
+    }
+
     private static void closeThreadLogAppender() {
         try {
             ThreadLogAppender tla = (ThreadLogAppender) Logger.getRootLogger().getAppender("ThreadLogAppender");
@@ -490,7 +504,7 @@ public class ReportContext {
                 closeThreadLogAppender();
                 testDir.renameTo(newTestDir);
                 testDirectory.set(newTestDir);
-                LOGGER.debug("Test directory is set to : " + newTestDir);
+                System.out.println("Test directory is set to : " + newTestDir);
             }
         } else {
             LOGGER.error("Unexpected case with absence of test.log for '" + test + "'");
@@ -531,7 +545,7 @@ public class ReportContext {
 
             int maxHistory = Configuration.getInt(Parameter.MAX_SCREENSHOOT_HISTORY);
 
-            if (maxHistory > 0 && screenshotFolders.size() + 1 > maxHistory && maxHistory != 0) {
+            if (maxHistory > 0 && screenshotFolders.size() + 1 > maxHistory) {
                 Comparator<File> comp = new Comparator<File>() {
                     @Override
                     public int compare(File file1, File file2) {
@@ -546,7 +560,7 @@ public class ReportContext {
                     try {
                         FileUtils.deleteDirectory(screenshotFolders.get(i));
                     } catch (IOException e) {
-                        LOGGER.error(e.getMessage(), e);
+                        System.out.println((e + "\n" + e.getMessage()));
                     }
                 }
             }
@@ -556,29 +570,32 @@ public class ReportContext {
     public static void generateHtmlReport(String content) {
         String emailableReport = SpecialKeywords.HTML_REPORT;
 
-        try {
-            File reportFile = new File(String.format("%s/%s/%s", System.getProperty("user.dir"),
-                    Configuration.get(Parameter.PROJECT_REPORT_DIRECTORY), emailableReport));
+        File reportFile = new File(String.format("%s/%s/%s", System.getProperty("user.dir"),
+                Configuration.get(Parameter.PROJECT_REPORT_DIRECTORY), emailableReport));
+        File reportFileToBaseDir = new File(String.format("%s/%s", getBaseDir(), emailableReport));
 
-            // if file doesn't exists, then create it
-            if (!reportFile.exists()) {
-                reportFile.createNewFile();
-            }
+        try (FileWriter reportFileWriter = new FileWriter(reportFile.getAbsoluteFile());
+             BufferedWriter reportBufferedWriter = new BufferedWriter(reportFileWriter);
+             FileWriter baseDirFileWriter = new FileWriter(reportFileToBaseDir.getAbsolutePath());
+             BufferedWriter baseDirBufferedWriter = new BufferedWriter(baseDirFileWriter)) {
 
-            FileWriter fw = new FileWriter(reportFile.getAbsoluteFile());
-            try {
-                BufferedWriter bw = new BufferedWriter(fw);
-                try {
-                    bw.write(content);
-                } finally {
-                    bw.close();
-                }
-            } finally {
-                fw.close();
-            }
+            createNewFileIfNotExists(reportFile);
+            reportBufferedWriter.write(content);
+
+            createNewFileIfNotExists(reportFileToBaseDir);
+            baseDirBufferedWriter.write(content);
 
         } catch (IOException e) {
             LOGGER.error("generateHtmlReport failure", e);
+        }
+    }
+
+    private static void createNewFileIfNotExists(File file) throws IOException {
+        if (!file.exists()) {
+            boolean isCreated = file.createNewFile();
+            if (!isCreated) {
+                throw new RuntimeException("File not created: " + file.getAbsolutePath());
+            }
         }
     }
 
@@ -592,7 +609,7 @@ public class ReportContext {
         if (!Configuration.get(Parameter.REPORT_URL).isEmpty()) {
             link = String.format("%s/%d/artifacts", Configuration.get(Parameter.REPORT_URL), rootID);
         } else {
-            link = String.format("file://%s/%d/artifacts", baseDirectory, rootID);
+            link = String.format("file://%s/artifacts", getBaseDirAbsolutePath());
         }
 
         return link;
@@ -620,7 +637,7 @@ public class ReportContext {
         if (!Configuration.get(Parameter.REPORT_URL).isEmpty()) {
             link = String.format("%s/%d/%s/report.html", Configuration.get(Parameter.REPORT_URL), rootID, test);
         } else {
-            link = String.format("./%d/%s/report.html", rootID, test);
+            link = String.format("file://%s/%s/report.html", getBaseDirAbsolutePath(), test);
         }
 
         return link;
@@ -643,7 +660,7 @@ public class ReportContext {
         if (!Configuration.get(Parameter.REPORT_URL).isEmpty()) {
             link = String.format("%s/%d/%s/test.log", Configuration.get(Parameter.REPORT_URL), rootID, test);
         } else {
-            link = String.format("./%d/%s/test.log", rootID, test);
+            link = String.format("file://%s/%s/test.log", getBaseDirAbsolutePath(), test);
         }
 
         return link;
@@ -661,7 +678,6 @@ public class ReportContext {
         String fileName = SpecialKeywords.CUCUMBER_REPORT_FILE_NAME;
 
         String link = "";
-        // String subfolder = "cucumber-html-reports";
         if (!Configuration.get(Parameter.REPORT_URL).isEmpty()) {
             // remove report url and make link relative
             // link = String.format("./%d/report.html", rootID);
@@ -672,8 +688,7 @@ public class ReportContext {
             }
             link = String.format("%s/%d/%s/%s/%s", report_url, rootID, folder, subFolder, fileName);
         } else {
-            //TODO: link might be broken on CI like https://github.com/qaprosoft/carina/issues/1001
-            link = String.format("file://%s/%s/%s", folder, subFolder, fileName);
+            link = String.format("file://%s/%s/%s/%s", getBaseDirAbsolutePath(), folder, subFolder, fileName);
         }
 
         return link;
@@ -737,7 +752,7 @@ public class ReportContext {
             try {
                 InputStream is = ClassLoader.getSystemClassLoader().getResourceAsStream(GALLERY_ZIP);
                 if (is == null) {
-                    LOGGER.warn("Unable to find in classpath: " + GALLERY_ZIP);
+                    System.out.println("Unable to find in classpath: " + GALLERY_ZIP);
                     return;
                 }
                 ZipManager.copyInputStream(is, new BufferedOutputStream(new FileOutputStream(reportsRootDir.getAbsolutePath() + "/"
@@ -746,7 +761,7 @@ public class ReportContext {
                 File zip = new File(reportsRootDir.getAbsolutePath() + "/" + GALLERY_ZIP);
                 zip.delete();
             } catch (Exception e) {
-                LOGGER.error("Unable to copyGalleryLib!", e);
+                System.out.println("Unable to copyGalleryLib! " +  e);
             }
         }
     }
@@ -815,6 +830,13 @@ public class ReportContext {
         if (screenSteps.containsKey(screenId))
             comment = screenSteps.get(screenId);
         return comment;
+    }
+
+    private static String getBaseDirAbsolutePath() {
+        if (baseDirectory != null) {
+            return baseDirectory.getAbsolutePath();
+        }
+        return null;
     }
 
 }

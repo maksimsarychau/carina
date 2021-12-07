@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2013-2020 QaProSoft (http://www.qaprosoft.com).
+ * Copyright 2020-2022 Zebrunner Inc (https://www.zebrunner.com).
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,20 +15,15 @@
  *******************************************************************************/
 package com.qaprosoft.carina.core.foundation.webdriver.core.capability.impl.desktop;
 
-import java.lang.invoke.MethodHandles;
-
 import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.firefox.FirefoxProfile;
 import org.openqa.selenium.remote.BrowserType;
 import org.openqa.selenium.remote.CapabilityType;
 import org.openqa.selenium.remote.DesiredCapabilities;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.qaprosoft.carina.core.foundation.webdriver.core.capability.AbstractCapabilities;
 
 public class FirefoxCapabilities extends AbstractCapabilities {
-    private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
     /**
      * Generate DesiredCapabilities for Firefox with default Carina FirefoxProfile.
@@ -41,7 +36,13 @@ public class FirefoxCapabilities extends AbstractCapabilities {
         DesiredCapabilities capabilities = new DesiredCapabilities();
         capabilities = initBaseCapabilities(capabilities, BrowserType.FIREFOX, testName);
         capabilities.setCapability(CapabilityType.TAKES_SCREENSHOT, false);
-        LOGGER.debug("Firefox caps: " + capabilities);
+
+        FirefoxProfile profile = new FirefoxProfile();
+        profile.setPreference("media.eme.enabled", true);
+        profile.setPreference("media.gmp-manager.updateEnabled", true);
+
+        FirefoxOptions options = new FirefoxOptions().setProfile(profile);
+        capabilities.setCapability(FirefoxOptions.FIREFOX_OPTIONS, options);
         return capabilities;
     }
 
@@ -62,7 +63,6 @@ public class FirefoxCapabilities extends AbstractCapabilities {
         FirefoxOptions options = new FirefoxOptions().setProfile(profile);
         capabilities.setCapability(FirefoxOptions.FIREFOX_OPTIONS, options);
         
-        LOGGER.debug("Firefox caps: " + capabilities);
         return capabilities;
     }
 

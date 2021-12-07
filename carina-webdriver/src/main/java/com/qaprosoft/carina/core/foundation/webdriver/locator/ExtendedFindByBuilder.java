@@ -1,7 +1,23 @@
+/*******************************************************************************
+ * Copyright 2020-2022 Zebrunner Inc (https://www.zebrunner.com).
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *******************************************************************************/
 package com.qaprosoft.carina.core.foundation.webdriver.locator;
 
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -48,16 +64,21 @@ public abstract class ExtendedFindByBuilder extends AbstractFindByBuilder {
                 LOGGER.debug("Special char has been detected in the image locator. Call format method on element before interaction.");
                 return MobileBy.image(ClassLoader.getSystemResource("").getPath() + findByCarina.image());
             }
-            String annotationLocator;
             URL fileUrl = ClassLoader.getSystemResource(findByCarina.image());
+            Path path;
             if (null != fileUrl) {
-                annotationLocator = fileUrl.getPath();
+                LOGGER.debug("ExtendedFindBy annotation image locator : " + fileUrl.getPath());
+                try {
+                    path = Paths.get(fileUrl.toURI());
+                } catch (URISyntaxException e) {
+                    e.printStackTrace();
+                    throw new RuntimeException("Error while reading system resource for ExtendedFindBy annotation. Check if image exists in class path: "
+                            + ClassLoader.getSystemResource("") + findByCarina.image());
+                }
             } else {
                 throw new RuntimeException("Error while reading system resource for ExtendedFindBy annotation. Check if image exists in class path: "
                         + ClassLoader.getSystemResource("") + findByCarina.image());
-            }  
-            LOGGER.debug("ExtendedFindBy annotation image locator : " + annotationLocator);
-            Path path = Paths.get(annotationLocator);
+            }
             LOGGER.debug("Path to search image template : " + path);
             String base64image = null;
             try {
@@ -65,7 +86,7 @@ public abstract class ExtendedFindByBuilder extends AbstractFindByBuilder {
                 LOGGER.debug("Base64 image representation has been successfully obtained.");
                 return MobileBy.image(base64image);
             } catch (IOException e) {
-                throw new RuntimeException("Error while reading image file for ExtendedFindBy annotation : " + annotationLocator, e);
+                throw new RuntimeException("Error while reading image file for ExtendedFindBy annotation : " + fileUrl.getPath(), e);
             }
         }
         return null;

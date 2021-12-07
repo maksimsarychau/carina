@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2013-2020 QaProSoft (http://www.qaprosoft.com).
+ * Copyright 2020-2022 Zebrunner Inc (https://www.zebrunner.com).
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.openqa.selenium.Platform;
 import org.openqa.selenium.Proxy;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.firefox.FirefoxOptions;
@@ -48,23 +47,12 @@ public abstract class AbstractCapabilities {
     private static ArrayList<Integer> firefoxPorts = new ArrayList<Integer>();
 
     public abstract DesiredCapabilities getCapability(String testName);
+    
+    private String fallbackSessionId = java.util.UUID.randomUUID().toString();
 
     protected DesiredCapabilities initBaseCapabilities(DesiredCapabilities capabilities, String browser, String testName) {
 
-        // TODO: should use provide capabilities as an argument for getPlatform call below?
-        String platform = Configuration.getPlatform();
-        if (!platform.equals("*")) {
-            capabilities.setPlatform(Platform.extractFromSysProperty(platform));
-        }
-
         capabilities.setBrowserName(browser);
-
-        // Selenium 3.4 doesn't support '*'. Only explicit or empty browser version should be provided
-        String browserVersion = Configuration.get(Parameter.BROWSER_VERSION);
-        if ("*".equalsIgnoreCase(browserVersion)) {
-            browserVersion = "";
-        }
-        capabilities.setVersion(browserVersion);
         capabilities.setCapability("name", testName);
 
         Proxy proxy = setupProxy();
@@ -80,15 +68,35 @@ public abstract class AbstractCapabilities {
 
     protected DesiredCapabilities initCapabilities(DesiredCapabilities capabilities) {
         // read all properties which starts from "capabilities.*" prefix and add them into desired capabilities.
+        /*
+         * make sure to provide non w3c correctly to avoid on mobile grid such errors:
+         * Caused by: java.lang.IllegalArgumentException: Illegal key values seen in w3c capabilities: [carinaTestRunId, enableLog, enableVNC,
+         * enableVideo, fallbackSessionId, provider]
+         */
+        Map<String, Object> providerCaps = new HashMap<>();
+        providerCaps.put("fallbackSessionId", this.fallbackSessionId);
+
+        
         final String prefix = SpecialKeywords.CAPABILITIES + ".";
         @SuppressWarnings({ "unchecked", "rawtypes" })
         Map<String, String> capabilitiesMap = new HashMap(R.CONFIG.getProperties());
         for (Map.Entry<String, String> entry : capabilitiesMap.entrySet()) {
             if (entry.getKey().toLowerCase().startsWith(prefix)) {
-                String value = R.CONFIG.get(entry.getKey());
+                String value = R.CONFIG.get(entry.getKey());                
                 if (!value.isEmpty()) {
                     String cap = entry.getKey().replaceAll(prefix, "");
-                    if ("false".equalsIgnoreCase(value)) {
+                    if ("enableVNC".equalsIgnoreCase(cap) ||
+                            "enableVideo".equalsIgnoreCase(cap) ||
+                            "enableLog".equalsIgnoreCase(cap) ||
+                            "enableMetadata".equalsIgnoreCase(cap)) {
+                        LOGGER.debug("Adding " + cap + " to capabilities as provider options");
+                        providerCaps.put(cap, Boolean.parseBoolean(value));
+                    } else if ("provider".equalsIgnoreCase(cap)) {
+                        providerCaps.put(cap, value);
+                    } else if ("idleTimeout".equalsIgnoreCase(cap) && isNumber(value)) {
+                        LOGGER.debug("Adding idleTimeout to capabilities as integer");
+                        capabilities.setCapability(cap, Integer.parseInt(value));
+                    } else if ("false".equalsIgnoreCase(value)) {
                         capabilities.setCapability(cap, false);
                     } else if ("true".equalsIgnoreCase(value)) {
                         capabilities.setCapability(cap, true);
@@ -98,12 +106,26 @@ public abstract class AbstractCapabilities {
                 }
             }
         }
-        capabilities.setCapability("carinaTestRunId", SpecialKeywords.TEST_RUN_ID);
+
+        String provider = !R.CONFIG.get("capabilities.provider").isEmpty() ? R.CONFIG.get("capabilities.provider") : "zebrunner";
+        if ("selenium".equalsIgnoreCase(provider)) {
+            // selenium is default provider name in Zebrunner CE
+            provider = "selenoid";
+        }
+        String optionName = provider + ":options";
+        capabilities.setCapability(optionName, providerCaps);
         
         //TODO: [VD] reorganize in the same way Firefox profiles args/options if any and review other browsers
         // support customization for Chrome args and options
-        String browser = Configuration.getBrowser();
 
+        // for pc we may set browserName through Desired capabilities in our Test with a help of a method initBaseCapabilities,
+        // so we don't want to override with value from config
+        String browser;
+        if (capabilities.getBrowserName() != null && capabilities.getBrowserName().length() > 0) {
+            browser = capabilities.getBrowserName();
+        } else {
+            browser = Configuration.getBrowser();
+        }
 
         if (BrowserType.FIREFOX.equalsIgnoreCase(browser)) {
             capabilities = addFirefoxOptions(capabilities);
@@ -201,9 +223,6 @@ public abstract class AbstractCapabilities {
             needsPrefs = true;
         }
 
-        if (needsPrefs) {
-        	options.setExperimentalOption("prefs", chromePrefs);
-        }
         
         // [VD] no need to set proxy via options anymore!
         // moreover if below code is uncommented then we have double proxy start and mess in host:port values
@@ -225,20 +244,30 @@ public abstract class AbstractCapabilities {
         }
     
         // add all custom chrome experimental options, w3c=false
-        for (String option: Configuration.get(Parameter.CHROME_EXPERIMENTAL_OPTS).split(",")) {
-            if (option.isEmpty()) {
-                continue;
-            }
+        String experimentalOptions = Configuration.get(Parameter.CHROME_EXPERIMENTAL_OPTS);
+        if(!experimentalOptions.isEmpty()) {
+            needsPrefs = true;
+            for (String option: experimentalOptions.split(",")) {
+                if (option.isEmpty()) {
+                    continue;
+                }
 
-            //TODO: think about equal sign inside name or value later
-            option = option.trim();
-            String name = option.split("=")[0].trim();
-            String value = option.split("=")[1].trim();
-            if ("true".equalsIgnoreCase(value) || "false".equalsIgnoreCase(value)) {
-                options.setExperimentalOption(name, Boolean.valueOf(value));
-            } else {
-                options.setExperimentalOption(name, value);
+                //TODO: think about equal sign inside name or value later
+                option = option.trim();
+                String name = option.split("=")[0].trim();
+                String value = option.split("=")[1].trim();
+                if ("true".equalsIgnoreCase(value) || "false".equalsIgnoreCase(value)) {
+                    chromePrefs.put(name, Boolean.valueOf(value));
+                } else if (isNumber(value)) {
+                    chromePrefs.put(name, Long.valueOf(value));
+                } else {
+                    chromePrefs.put(name, value);
+                }
             }
+        }
+
+        if (needsPrefs) {
+            options.setExperimentalOption("prefs", chromePrefs);
         }
         
         // add all custom chrome mobileEmulation options, deviceName=Nexus 5
@@ -304,6 +333,20 @@ public abstract class AbstractCapabilities {
         }
 
         return caps;
+    }
+
+    private boolean isNumber(String value){
+        if (value == null || value.isEmpty()){
+            return false;
+        }
+
+        try {
+            Integer.parseInt(value);
+        } catch (NumberFormatException ex){
+            return false;
+        }
+
+        return true;
     }
 
     /**

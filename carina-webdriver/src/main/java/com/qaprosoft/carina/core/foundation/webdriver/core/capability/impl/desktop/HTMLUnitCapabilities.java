@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2013-2020 QaProSoft (http://www.qaprosoft.com).
+ * Copyright 2020-2022 Zebrunner Inc (https://www.zebrunner.com).
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,20 +15,14 @@
  *******************************************************************************/
 package com.qaprosoft.carina.core.foundation.webdriver.core.capability.impl.desktop;
 
-import org.openqa.selenium.Platform;
 import org.openqa.selenium.remote.DesiredCapabilities;
 
-import com.qaprosoft.carina.core.foundation.utils.Configuration;
 import com.qaprosoft.carina.core.foundation.webdriver.core.capability.AbstractCapabilities;
 
 public class HTMLUnitCapabilities extends AbstractCapabilities {
 
     public DesiredCapabilities getCapability(String testName) {
         DesiredCapabilities capabilities = DesiredCapabilities.htmlUnit();
-        String platform = Configuration.getPlatform();
-        if (!platform.equals("*")) {
-            capabilities.setPlatform(Platform.extractFromSysProperty(platform));
-        }
         capabilities.setJavascriptEnabled(true);
         return capabilities;
     }

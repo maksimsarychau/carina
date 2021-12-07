@@ -45,18 +45,13 @@ All the project configuration properties are located in a **_config.properties**
 		<td>Boolean</td>
 	</tr>
 	<tr>
-		<td>browser_version</td>
-		<td>Browser version or an empty string if unknown for Selenium Grid</td>
-		<td>"87", "72"</td>
-	</tr>
-		<tr>
 		<td>browser_language</td>
 		<td>Browser language or nothing to use the English version by default.</td>
 		<td>"es", "fr"</td>
 	</tr>
 	<tr>
-		<td>selenium_host</td>
-		<td>Selenium/Appium server host</td>
+		<td>selenium_url</td>
+		<td>Selenium/Appium server url</td>
 		<td>http://localhost:4444/wd/hub</td>
 	</tr>
 	<tr>
@@ -66,20 +61,9 @@ All the project configuration properties are located in a **_config.properties**
 	</tr>
 	<tr>
 		<td>locale</td>
-		<td>Locale for using L10N feature. Enabled when enable_l10n=true</td>
+		<td>Locale for using L10N feature</td>
 		<td>en_GB,de_DE,fr_FR</td>
 	</tr>
-	<tr>
-		<td>enable_l10n</td>
-		<td>Enables L10N feature</td>
-		<td>false, true</td>
-	</tr>
-	<tr>
-		<td>l10n_encoding</td>
-		<td>Charset for l10n feature</td>
-		<td>ISO-8859-5, ISO-8859-6, UTF-8</td>
-	</tr>
-
 	<tr>
 		<td>retry_interval</td>
 		<td>Timeout interval between calling HTML DOM for the element.<br><b>Note:</b> in ms. For mobile automation specify a number from 500-1000 range</td>
@@ -101,14 +85,14 @@ All the project configuration properties are located in a **_config.properties**
 		<td>Integer</td>
 	</tr>
 	<tr>
-		<td>jira_url</td>
-		<td>JIRA base URL for direct links with bugs description</td>
-		<td>https://jira.carina.com/browse/</td>
-	</tr>
-	<tr>
 		<td>env</td>
 		<td>Environment specific configuration. More about this [feature](#environment-specific-configuration)</td>
 		<td>STAG, PROD, DEMO</td>
+	</tr>
+	<tr>
+		<td>ignore_ssl</td>
+		<td>API requests/responses to ignore SSL errors. Default: false</td>
+		<td>Boolean</td>
 	</tr>
 	<tr>
 		<td>driver_event_listeners</td>
@@ -175,11 +159,6 @@ All the project configuration properties are located in a **_config.properties**
 		<td>Excluded hostname(s) for communication via proxy. Available only when proxy_host and proxy_port are declared!</td>
 		<td>localhost.example.com</td>
 	</tr>
-		<tr>
-		<td>track_known_issues</td>
-		<td>Boolean parameter. If it is true and some Jira tickets are associated with the test, in case of failure Jira info will be added to the report</td>
-		<td>true,false</td>
-	</tr>
 	<tr>
 		<td>explicit_timeout</td>
 		<td>Timeout is seconds to wait for a certain condition to occur before proceeding further in the code</td>
@@ -231,7 +210,7 @@ All the project configuration properties are located in a **_config.properties**
 	</tr>
 		<tr>
 		<td>thread_count</td>
-		<td>Default number of threads to use when running tests in parallel. Set thread_count=custom to disable any updates on carina side.</td>
+		<td>Default number of threads to use when running tests in parallel. Set thread-count=custom to disable any updates on carina side.</td>
 		<td>Integer</td>
 	</tr>
 		<tr>
@@ -251,7 +230,7 @@ All the project configuration properties are located in a **_config.properties**
 	</tr>
 		<tr>
 		<td>log_all_json</td>
-		<td>API response will be logged in JSON format</td>
+		<td>API response will be logged in JSON format. Default: true</td>
 		<td>Boolean</td>
 	</tr>
 		<tr>
@@ -274,25 +253,15 @@ All the project configuration properties are located in a **_config.properties**
 		<td>Suite name for the report and TestRail. If this parameter is NULL, will be taken from TestNG xml (the parameter suite name) or _email.properties (the title)</td>
 		<td>Advanced Acceptance</td>
 	</tr>
-	<tr>
-		<td>jira_url</td>
-		<td>URL to Jira</td>
-		<td>https://yourclass.atlassian.net</td>
-	</tr>
 		<tr>
 		<td>access_key_id</td>
-		<td>Access key id for Amazon S3 build uploader. More info [here](#https://docs.aws.amazon.com/general/latest/gr/aws-sec-cred-types.html#access-keys-and-secret-access-keys)</td>
+		<td>Access key id for Amazon S3 build uploader. More info [here](https://docs.aws.amazon.com/general/latest/gr/aws-sec-cred-types.html#access-keys-and-secret-access-keys)</td>
 		<td>gkhcvdgvceUYF67897hbjsbdc</td>
 	</tr>
 		<tr>
 		<td>secret_key</td>
-		<td>Secret key for Amazon S3 build uploader. More info [here](#https://docs.aws.amazon.com/general/latest/gr/aws-sec-cred-types.html#access-keys-and-secret-access-keys)</td>
+		<td>Secret key for Amazon S3 build uploader. More info [here](https://docs.aws.amazon.com/general/latest/gr/aws-sec-cred-types.html#access-keys-and-secret-access-keys)</td>
 		<td>gkhcvdgvceUYF67897hbjsbdc</td>
-	</tr>
-		<tr>
-		<td>s3_local_storage</td>
-		<td>Local directory for downloading build artifacts</td>
-		<td>./s3</td>
 	</tr>
 		<tr>
 		<td>appcenter_token</td>
@@ -300,29 +269,13 @@ All the project configuration properties are located in a **_config.properties**
 		<td>gkhcvdgvceUYF67897hbjsbdc</td>
 	</tr>
 		<tr>
-		<td>appcenter_local_storage</td>
-		<td>Directory for AppCenter artifacts</td>
-		<td>./appcenter</td>
-	</tr>
-		<tr>
-		<td>add_new_localization</td>
-		<td>Should be set to 'true' if you want to create new localization files for the required Locale. Otherwise, there will be just the localization checking</td>
-		<td>Boolean</td>
-	</tr>
-		<tr>
-		<td>add_new_localization_encoding</td>
 		<td>Encoding for a new localization</td>
-		<td>utf-16, utf-32</td>
+		<td>UTF-8</td>
 	</tr>
 		<tr>
-		<td>add_new_localization_path</td>
-		<td>Path where created localization properties should be saved. If null, they will be added to an artifactory folder in the report</td>
-		<td>utf-16, utf-32</td>
-	</tr>
-		<tr>
-		<td>add_new_localization_property_name</td>
-		<td>Path where created localization properties should be saved. If null, they will be added to an artifactory folder in the report</td>
-		<td>Basic template for property name.</td>
+		<td>localization_testing</td>
+		<td>Enables auto verification for elements that are marked with @Localized</td>
+		<td>true, false</td>
 	</tr>
 		<tr>
 		<td>tls_keysecure_location</td>
@@ -342,7 +295,7 @@ All the project configuration properties are located in a **_config.properties**
 	<tr>
 		<td>test_run_rules</td>
 		<td>Executing rules logic: test_run_rules={RULE_NAME_ENUM}=>{RULE_VALUE1}&&{RULE_VALUE2};;...</td>
-		<td>test_run_rules=PRIORITY=>P1&amp;&amp;P2;;OWNER=>owner;;TAGS=>tag1=temp&amp;&amp;feature=reg</td>
+		<td>test_run_rules=PRIORITY=>P1&amp;&amp;P2&&P4;;OWNER=>owner;;TAGS=>tag1=temp||!!feature=reg</td>
 	</tr>
 	<tr>
 		<td>element_loading_strategy</td>
@@ -354,13 +307,15 @@ All the project configuration properties are located in a **_config.properties**
 		<td>Determines how carina detects whether expected page is opened: by expected url pattern, by marker element loading state or by both these conditions</td>
 		<td>BY_ELEMENT, BY_URL, BY_URL_AND_ELEMENT</td>
 	</tr>
+
 </table>
 Most of the properties may be read in the following way:
+
 ```
 Configuration.get(Parameter.URL) // returns string value
 Configuration.getBoolean(Parameter.AUTO_SCREENSHOT) // returns boolean value
 Configuration.getInt(Parameter.BIG_SCREEN_WIDTH) //return int value
-Configuration.getDouble(Parameter.BROWSER_VERSION) // returns double value
+Configuration.getDouble(Parameter.MAX_DRIVER_COUNT) // returns double value
 ```
 
 ### Environment specific configuration
@@ -377,8 +332,78 @@ Configuration.getEnvArg("url")
 ```
 As a result, you switch between the environments just changing the env argument in the _config.properties file.
 
+### Tests execution filter configuration
+The test_run_rules parameter is responsible for filtering tests.
+There are 3 filter types:
+1) PRIORITY - enum field (from P0 to P6)
+2) OWNER - the test owner
+3) TAGS - custom label
+
+Example of how to attach labels in code:
+```
+@Test
+@TestPriority(Priority.P3)
+@MethodOwner(owner = "Josh")
+@MethodOwner(owner = "Jake")
+@TestTag(name = "feature", value = "web")
+@TestTag(name = "type", value = "regression")
+public void t4(){
+	...
+	some code
+	...
+}
+```
+
+test_run_rules parameter parse logic:
+
+1) A simple filter:
+```
+test_run_rules=OWNER=>Josh
+#Where OWNER is tag, and "=>" split's tag and rule part.
+#Because of the "Josh" rule, test will be executed if it has Josh as owner
+```
+2) With negative logic:
+```
+test_run_rules=OWNER=>!!Josh
+#Test will be executed if it hasn't got Josh as owner
+```
+3) With boolean logic:
+```
+#Use || or && to create more difficult rules
+#where || == OR; && == AND.
+
+test_run_rules=OWNER=>Josh||Jake
+#Test will be executed if it has at least Josh or Jake as owner.
+
+test_run_rules=OWNER=>Josh&&Jake
+#Test will be executed if it has at least Jish and Jake as owner
+
+test_run_rules=OWNER=>Josh&&Jake||Peter
+#Expression will be processed in sequential priority, like
+#test_run_rules=OWNER=>((Josh&&Jake)||Peter)
+#So test will be executed if it has at least (Josh and Jake) or (Peter) as owner
+```
+4) To add more tags to the rule use ";;", example:
+```
+#;; works as && (AND) but for tags
+
+test_run_rules=PRIORITY=>!!P1;;OWNER=>Josh&&!!Jake;;TAGS=>feature=web&&!!type=smoke||feature=android
+
+#Test will be executed if it has
+#1) no @TestPriority(Priority.P1)
+#AND
+#2) @MethodOwner(owner = "Josh") without @MethodOwner(owner = "Jake")
+#AND
+#3) (@TestTag(name = "feature", value = "web") without @TestTag(name = "type", value = "smoke"))
+	 	or @TestTag(name = "feature", value = "android")	 	
+
+#In other words, will be executed tests with Priority that differs from P1, with Josh as owner if there no Jake 
+#and if they are for not smoke web or if they are for android.
+```
+
 ### [Zebrunner Reporting](https://zebrunner.com/documentation/agents/testng) configuration
-[**agent.properties**](https://github.com/qaprosoft/carina-demo/blob/master/src/main/resources/agent.properties) are used for Zebrunner Reporting integration, here you should specify some values for a proper integration:<table>
+[**agent.properties**](https://github.com/zebrunner/carina-demo/blob/master/src/main/resources/agent.properties) file is used for Zebrunner Reporting integration, here you should specify some values for a proper integration:
+<table>	
 	<tr>
 		<th>Attribute</th>
 		<th>Meaning</th>
@@ -391,17 +416,33 @@ As a result, you switch between the environments just changing the env argument 
 	</tr>
 	<tr>
 		<td>reporting.server.hostname</td>
-		<td>Zebrunner Service URL</td>
+		<td>Service URL</td>
 		<td>https://mycompany.zebrunner.com</td>
 	</tr>
 	<tr>
 		<td>reporting.server.access-token</td>
-		<td>Zebrunner Access Token</td>
-		<td>true/false</td>
+		<td>Access Token</td>
+		<td>eyJhbGciOiJIUzUxMiJ9...</td>
 	</tr>
 	<tr>
 		<td>reporting.projectKey</td>
-		<td>Zebrunner Project name</td>
+		<td>Project Name</td>
 		<td>empty or any existing name</td>
 	</tr>
 </table>
+
+###Tricks
+#### Pass params through _config.properties, not in code.
+```
+Will work both:
+1) putting parameters in _config.properties :
+   selenium_url=http://localhost:4444/wd/hub
+2) passing them right in the test:
+public void testCompareModels() {
+   R.CONFIG.put("selenium_url", "http://localhost:4444/wd/hub");
+   HomePage homePage = new HomePage(getDriver());
+   homePage.open();
+   ...
+}
+Nevertheless, it is recommended to use the 1st variant for initialization of all the parameters.
+```

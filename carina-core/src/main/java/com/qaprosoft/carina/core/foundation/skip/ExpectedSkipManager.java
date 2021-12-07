@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2013-2020 QaProSoft (http://www.qaprosoft.com).
+ * Copyright 2020-2022 Zebrunner Inc (https://www.zebrunner.com).
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,7 +62,7 @@ public class ExpectedSkipManager {
                 }
             } catch (InstantiationException | IllegalAccessException e) {
                 LOGGER.error("Error during skip rules initialization: ".concat(rule.getName()));
-                LOGGER.error("Error msg: ".concat(e.getMessage()), e);
+                LOGGER.error("Error msg: ", e);
             }
         }
         return false;
@@ -71,8 +71,8 @@ public class ExpectedSkipManager {
     /**
      * Collect rules based on tests and its context
      * 
-     * @param testMethod
-     * @param context
+     * @param testMethod Method
+     * @param context ITestContext
      * @return rules list
      */
     private List<Class<? extends IRule>> collectRules(Method testMethod, ITestContext context) {
@@ -100,7 +100,7 @@ public class ExpectedSkipManager {
     /**
      * Get rules from annotation
      * 
-     * @param annotation
+     * @param annotation ExpectedSkip
      * @return rules list
      */
     private List<Class<? extends IRule>> getRulesFromAnnotation(ExpectedSkip annotation) {
@@ -114,7 +114,7 @@ public class ExpectedSkipManager {
     /**
      * Get rules from dependent methods and their classes
      * 
-     * @param methodName
+     * @param methodName String
      * @return rules list
      */
     private List<Class<? extends IRule>> getDependentMethodsRules(String methodName) {

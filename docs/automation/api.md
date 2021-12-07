@@ -1,5 +1,7 @@
 [![Carina - API automation](https://raw.githubusercontent.com/qaprosoft/carina/master/docs/img/video.png)](https://youtu.be/oJL5y8Ovta0)
 
+Note: Starting from 7.0.4 consider that instead of `extends AbstractTest` we have to `implements IAbstractTest` interface
+
 ### Introduction
 Rest API testing is a vital part of integration testing process, it may be used separately or together with web, mobile or DB testing. The general process may be described by the following steps:
 
@@ -93,32 +95,48 @@ PatchPostsMethod=PATCH:${base_url}/posts/1
 ```
 
 #### API test
-API test is a general TestNG test, a class should extend APITest, in our case, the test extends it over AbstractTest that encapsulates some test data and login method. The test is located in /carina-demo/src/test/java/com/qaprosoft/carina/demo.
+API test is a general TestNG test, a class should extend APITest, in our case, the test implements IAbstractTest that encapsulates some test data and login method. The test is located in /carina-demo/src/test/java/com/qaprosoft/carina/demo.
 ```
 package com.qaprosoft.carina.demo;
 
+import java.lang.invoke.MethodHandles;
+
+import com.qaprosoft.carina.core.foundation.IAbstractTest;
 import org.skyscreamer.jsonassert.JSONCompareMode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.testng.annotations.Test;
 
 import com.qaprosoft.apitools.validation.JsonCompareKeywords;
-import com.qaprosoft.carina.core.foundation.AbstractTest;
 import com.qaprosoft.carina.core.foundation.api.http.HttpResponseStatusType;
 import com.qaprosoft.carina.core.foundation.utils.ownership.MethodOwner;
+import com.qaprosoft.carina.core.foundation.utils.tag.Priority;
+import com.qaprosoft.carina.core.foundation.utils.tag.TestPriority;
 import com.qaprosoft.carina.demo.api.DeleteUserMethod;
 import com.qaprosoft.carina.demo.api.GetUserMethods;
 import com.qaprosoft.carina.demo.api.PostUserMethod;
 
-public class APISampleTest extends AbstractTest {
-    @Test(description = "JIRA#DEMO-0001")
+/**
+ * This sample shows how create REST API tests.
+ *
+ * @author qpsdemo
+ */
+public class APISampleTest implements IAbstractTest {
+    private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+    
+
+    @Test()
     @MethodOwner(owner = "qpsdemo")
     public void testCreateUser() throws Exception {
+        LOGGER.info("test");
+        setCases("4555,54545");
         PostUserMethod api = new PostUserMethod();
         api.expectResponseStatus(HttpResponseStatusType.CREATED_201);
         api.callAPI();
         api.validateResponse();
     }
 
-    @Test(description = "JIRA#DEMO-0002")
+    @Test()
     @MethodOwner(owner = "qpsdemo")
     public void testCreateUserMissingSomeFields() throws Exception {
         PostUserMethod api = new PostUserMethod();
@@ -129,15 +147,26 @@ public class APISampleTest extends AbstractTest {
         api.validateResponse();
     }
 
-    @Test(description = "JIRA#DEMO-0003")
+    @Test()
     @MethodOwner(owner = "qpsdemo")
     public void testGetUsers() {
         GetUserMethods getUsersMethods = new GetUserMethods();
         getUsersMethods.expectResponseStatus(HttpResponseStatusType.OK_200);
         getUsersMethods.callAPI();
         getUsersMethods.validateResponse(JSONCompareMode.STRICT, JsonCompareKeywords.ARRAY_CONTAINS.getKey());
-        getUsersMethods.validateResponseAgainstJSONSchema("api/users/_get/rs.schema");
+        getUsersMethods.validateResponseAgainstSchema("api/users/_get/rs.schema");
     }
+
+    @Test()
+    @MethodOwner(owner = "qpsdemo")
+    @TestPriority(Priority.P1)
+    public void testDeleteUsers() {
+        DeleteUserMethod deleteUserMethod = new DeleteUserMethod();
+        deleteUserMethod.expectResponseStatus(HttpResponseStatusType.OK_200);
+        deleteUserMethod.callAPI();
+        deleteUserMethod.validateResponse();
+    }
+
 }
 ```
 
@@ -397,3 +426,51 @@ ObjectMapper mapper = new ObjectMapper();
 Clients clients = mapper.readValue(rs, Clients.class);
 ```
 Then you can use POJO object for any kind of validation or for easy retrieving of the required properties.
+
+### Security
+Carina provides some security features that could be used to hide/protect sensitive data in your API calls.  
+
+#### Encryption of API method properties
+It's possible to use default carina crypto logic for automatic decription of sensitive data.  
+In order to encrypt the data you can use carina's [CryptoConsole](../advanced/security.md)  
+Then you can save your encrypted properties using default pattern: "{crypt:ENCRYPTED_TXT}"  
+During properties parsing process carina-api module will automatically decrypt the text and put decrypted value into request body.  
+
+#### Hiding of API request headers
+In order to hide the value of API request header you need to annotate your API method with @HideRequestHeadersInLogs annotation.
+Usage sample:
+```
+@HideRequestHeadersInLogs(headers = "Content-Type")
+public class YourAPIMethod extends AbstractApiMethodV2 {
+    public YourAPIMethod() {    
+    }
+}
+```  
+Then in your test logs for mentioned headers you'll get "[ BLACKLISTED ]" mask
+
+#### Hiding of API call body parts
+If you want not to show some sensitive data in body of your api calls in test logs then you'll need to annotate your API method with @HideRequestBodyPartsInLogs/@HideResponseBodyPartsInLogs annotations.  
+These annotations support both json and xml content type.  
+As the value of annotation you need to pass array of JSON or XML paths you want to hide.  
+Once done in test logs you'll get "\*\*\*\*\*\*\*\*" mask instead of actual values.  
+Example for json:  
+```
+@HideRequestBodyPartsInLogs(paths = { "$.[*].username", "$.[*].id" })
+@HideResponseBodyPartsInLogs(paths = { "$.[*].address.zipcode", "$.[*].address.geo.lat", "$.[*].id" })
+public class YourAPIMethod extends AbstractApiMethodV2 {
+    public YourAPIMethod() {
+    }
+}
+```  
+Example for xml:
+```
+@HideRequestBodyPartsInLogs(paths = { "//root/city/text()" })
+@HideResponseBodyPartsInLogs(paths = { "//root/state/text()" })
+@ContentType(type = "application/xml")
+public class XmlPostMethod extends AbstractApiMethodV2 {
+    public XmlPostMethod() {
+    }
+}
+```  
+Important: for XML content type it's obligatory to pass @ContentType annotation to your API method indicating actual header value.  
+If @ContentType is not specified then data will be automatically considered as JSON.  

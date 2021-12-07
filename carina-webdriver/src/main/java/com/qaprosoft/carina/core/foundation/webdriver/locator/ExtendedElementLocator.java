@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2013-2020 QaProSoft (http://www.qaprosoft.com).
+ * Copyright 2020-2022 Zebrunner Inc (https://www.zebrunner.com).
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.qaprosoft.carina.core.foundation.webdriver.decorator.annotations.CaseInsensitiveXPath;
-import com.qaprosoft.carina.core.foundation.webdriver.decorator.annotations.DisableCacheLookup;
+import com.qaprosoft.carina.core.foundation.webdriver.decorator.annotations.Localized;
 
 /**
  * The default element locator, which will lazily locate an element or an
@@ -45,11 +45,12 @@ public class ExtendedElementLocator implements ElementLocator {
     private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
     private final SearchContext searchContext;
-    private boolean shouldCache;
-    private boolean caseInsensitive;
     private By by;
-    private WebElement cachedElement;
-
+    private String className;
+    
+    private boolean caseInsensitive = false;
+    private boolean localized = false;
+    
     /**
      * Creates a new element locator.
      * 
@@ -59,30 +60,25 @@ public class ExtendedElementLocator implements ElementLocator {
      */
     public ExtendedElementLocator(SearchContext searchContext, Field field) {
         this.searchContext = searchContext;
+        String[] classPath = field.getDeclaringClass().toString().split("\\.");
+        this.className = classPath[classPath.length-1];
 
         if (field.isAnnotationPresent(FindBy.class) || field.isAnnotationPresent(ExtendedFindBy.class)) {
             LocalizedAnnotations annotations = new LocalizedAnnotations(field);
-            this.shouldCache = true;
-            this.caseInsensitive = false;
             this.by = annotations.buildBy();
-            if (field.isAnnotationPresent(DisableCacheLookup.class)) {
-                this.shouldCache = false;
-            }
             if (field.isAnnotationPresent(CaseInsensitiveXPath.class)) {
                 this.caseInsensitive = true;
             }
+            if (field.isAnnotationPresent(Localized.class)) {
+                this.localized = true;
+            }
         }
-
     }
 
     /**
      * Find the element.
      */
     public WebElement findElement() {
-        if (cachedElement != null && shouldCache) {
-            return cachedElement;
-        }
-
         WebElement element = null;
         List<WebElement> elements = null;
         NoSuchElementException exception = null;
@@ -109,13 +105,9 @@ public class ExtendedElementLocator implements ElementLocator {
         
         // If no luck throw general NoSuchElementException
         if (element == null) {
-            throw exception != null ? exception : new NoSuchElementException("Unable to find element by Selenium/AI");
+            throw exception != null ? exception : new NoSuchElementException("Unable to find element");
         }
-
-        // 1. enable cache for successfully discovered element to minimize selenium calls
-        if (shouldCache) {
-            cachedElement = element;
-        }
+        
         return element;
     }
 
@@ -131,11 +123,9 @@ public class ExtendedElementLocator implements ElementLocator {
             LOGGER.debug("Unable to find elements: " + e.getMessage());
         }
 
-        //TODO: incorporate find by AI???
-        
         // If no luck throw general NoSuchElementException
         if (elements == null) {
-            throw new NoSuchElementException("Unable to find elements by Selenium");
+            throw new NoSuchElementException("Unable to find elements");
         }
 
         // we can't enable cache for lists by default as we can't handle/catch list.get(index).action(). And for all dynamic lists
@@ -176,6 +166,7 @@ public class ExtendedElementLocator implements ElementLocator {
             String replacement = "translate(" + matcher.group(2) + ", " + matcher.group(4) + value.toUpperCase() + matcher.group(4) + ", " + matcher.group(4) + value.toLowerCase() + matcher.group(4) + ")" + matcher.group(3)
                     + "translate(" + matcher.group(4) + value + matcher.group(4)+ ", " + matcher.group(4) + value.toUpperCase() + matcher.group(4) + ", " + matcher.group(4) + value.toLowerCase() + matcher.group(6)
                     + ")" + matcher.group(7);
+            replacement = replacement.replaceAll("\\$", "\\\\\\$");
             LOGGER.debug(replacement);
             matcher.appendReplacement(sb, replacement);
         }
@@ -183,8 +174,12 @@ public class ExtendedElementLocator implements ElementLocator {
         return By.xpath(sb.toString());
     }
 
-    public void setShouldCache(boolean shouldCache) {
-        this.shouldCache = shouldCache;
+    public boolean isLocalized() {
+        return localized;
+    }
+
+    public String getClassName(){
+        return className;
     }
 
 }

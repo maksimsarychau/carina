@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2013-2020 QaProSoft (http://www.qaprosoft.com).
+ * Copyright 2020-2022 Zebrunner Inc (https://www.zebrunner.com).
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,11 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import javax.imageio.ImageIO;
 
@@ -52,8 +57,10 @@ import com.qaprosoft.carina.core.foundation.webdriver.screenshot.IScreenshotRule
 import io.appium.java_client.AppiumDriver;
 import io.appium.java_client.windows.WindowsDriver;
 import ru.yandex.qatools.ashot.AShot;
+import ru.yandex.qatools.ashot.comparison.DiffMarkupPolicy;
 import ru.yandex.qatools.ashot.comparison.ImageDiff;
 import ru.yandex.qatools.ashot.comparison.ImageDiffer;
+import ru.yandex.qatools.ashot.comparison.PointsMarkupPolicy;
 import ru.yandex.qatools.ashot.shooting.ShootingStrategies;
 import ru.yandex.qatools.ashot.shooting.ShootingStrategy;
 
@@ -66,6 +73,8 @@ public class Screenshot {
     private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
     private static List<IScreenshotRule> rules = Collections.synchronizedList(new ArrayList<IScreenshotRule>());
+    
+    private static final String ERROR_STACKTRACE = "Error stacktrace: ";
     
     protected static boolean defaultCapturer = true;
 
@@ -255,14 +264,14 @@ public class Screenshot {
             if (isCaptured(e.getMessage())) {
                 // display exception as we suspect to make screenshot for this use-case
                 LOGGER.warn("Unable to capture screenshot due to the WebDriverException!");
-                LOGGER.debug(e.getMessage(), e);
+                LOGGER.debug(ERROR_STACKTRACE, e);
             } else {
                 // Do not display exception by default as we don't suspect to make screenshot for this use-case
                 LOGGER.debug("Unable to capture screenshot due to the WebDriverException!", e);
             }
         } catch (Exception e) {
             LOGGER.warn("Unable to capture screenshot due to the Exception!");
-            LOGGER.debug(e.getMessage(), e);
+            LOGGER.debug(ERROR_STACKTRACE, e);
         } finally {
             LOGGER.debug("Screenshot->captureFullSize finished.");
         }
@@ -397,21 +406,24 @@ public class Screenshot {
                 ImageIO.write(screen, "PNG", screenshot);
 
                 com.zebrunner.agent.core.registrar.Screenshot.upload(Files.readAllBytes(screenshot.toPath()), Instant.now().toEpochMilli());
+                
+                // [VD] do not print log message as it double lines in reporting 
+                // LOGGER.info(comment);
 
                 // add screenshot comment to collector
                 ReportContext.addScreenshotComment(screenName, comment);
             } catch (NoSuchWindowException e) {
                 LOGGER.warn("Unable to capture screenshot due to NoSuchWindowException!");
-                LOGGER.debug(e.getMessage(), e);
+                LOGGER.debug(ERROR_STACKTRACE, e);
             } catch (IOException e) {
                 LOGGER.warn("Unable to capture screenshot due to the I/O issues!");
-                LOGGER.debug(e.getMessage(), e);
+                LOGGER.debug(ERROR_STACKTRACE, e);
             } catch (WebDriverException e) {
                 LOGGER.warn("Unable to capture screenshot due to the WebDriverException!");
-                LOGGER.debug(e.getMessage(), e);                
+                LOGGER.debug(ERROR_STACKTRACE, e);
             } catch (Exception e) {
                 LOGGER.warn("Unable to capture screenshot due to the Exception!");
-                LOGGER.debug(e.getMessage(), e);
+                LOGGER.debug(ERROR_STACKTRACE, e);
             } finally {
                 LOGGER.debug("Screenshot->capture finished.");
             }
@@ -453,57 +465,93 @@ public class Screenshot {
      *            - webDriver.
      * @param augmentedDriver
      *            - webDriver.
-     * @exception IOException
+     * @exception Exception can be cause by read() or getScreenshotAs() methods
      *
      * @return screenshot image
      */
     private static BufferedImage takeFullScreenshot(WebDriver driver, WebDriver augmentedDriver) throws Exception {
-        BufferedImage screenShot;
-        
-        if (driver.getClass().toString().contains("windows")) {
-            File screenshot = ((WindowsDriver<?>) driver).getScreenshotAs(OutputType.FILE);
-            screenShot = ImageIO.read(screenshot);
-        } else if (driver.getClass().toString().contains("java_client")) {
-            // Mobile Native app
-            File screenshot = ((AppiumDriver<?>) driver).getScreenshotAs(OutputType.FILE);
-            screenShot = ImageIO.read(screenshot);
-        } else if (Configuration.getDriverType().equals(SpecialKeywords.MOBILE)) {
-            ru.yandex.qatools.ashot.Screenshot screenshot;
-            if (Configuration.getPlatform().equals("ANDROID")) {
-                String pixelRatio = String.valueOf(((EventFiringWebDriver) augmentedDriver).getCapabilities().getCapability("pixelRatio"));
-                if (!pixelRatio.equals("null")) {
-                    float dpr = Float.parseFloat(pixelRatio);
-                    screenshot = (new AShot()).shootingStrategy(ShootingStrategies
-                            .viewportRetina(SpecialKeywords.DEFAULT_SCROLL_TIMEOUT, SpecialKeywords.DEFAULT_BLOCK, SpecialKeywords.DEFAULT_BLOCK,
-                                    dpr))
-                            .takeScreenshot(augmentedDriver);
-                    screenShot = screenshot.getImage();
+        Future<?> future = Executors.newSingleThreadExecutor().submit(new Callable<BufferedImage>() {
+            public BufferedImage call() throws IOException {
+                BufferedImage screenShot;
+                if (driver.getClass().toString().contains("windows")) {
+                    File screenshot = ((WindowsDriver<?>) driver).getScreenshotAs(OutputType.FILE);
+                    screenShot = ImageIO.read(screenshot);
+                } else if (driver.getClass().toString().contains("java_client")) {
+                    // Mobile Native app
+                    File screenshot = ((AppiumDriver<?>) driver).getScreenshotAs(OutputType.FILE);
+                    screenShot = ImageIO.read(screenshot);
+                } else if (Configuration.getDriverType().equals(SpecialKeywords.MOBILE)) {
+                    ru.yandex.qatools.ashot.Screenshot screenshot;
+                    if (Configuration.getPlatform().equals("ANDROID")) {
+                        String pixelRatio = String.valueOf(((EventFiringWebDriver) augmentedDriver).getCapabilities().getCapability("pixelRatio"));
+                        if (!pixelRatio.equals("null")) {
+                            float dpr = Float.parseFloat(pixelRatio);
+                            screenshot = (new AShot()).shootingStrategy(ShootingStrategies
+                                    .viewportRetina(SpecialKeywords.DEFAULT_SCROLL_TIMEOUT, SpecialKeywords.DEFAULT_BLOCK, SpecialKeywords.DEFAULT_BLOCK,
+                                            dpr))
+                                    .takeScreenshot(augmentedDriver);
+                            screenShot = screenshot.getImage();
+                        } else {
+                            screenshot = (new AShot()).shootingStrategy(ShootingStrategies
+                                    .viewportRetina(SpecialKeywords.DEFAULT_SCROLL_TIMEOUT, SpecialKeywords.DEFAULT_BLOCK, SpecialKeywords.DEFAULT_BLOCK,
+                                            SpecialKeywords.DEFAULT_DPR))
+                                    .takeScreenshot(augmentedDriver);
+                            screenShot = screenshot.getImage();
+                        }
+                    } else {
+                        int deviceWidth = augmentedDriver.manage().window().getSize().getWidth();
+                        String deviceName = "";
+                        if (augmentedDriver instanceof EventFiringWebDriver) {
+                            deviceName = String.valueOf(((EventFiringWebDriver) augmentedDriver).getCapabilities().getCapability("deviceName"));
+                        } else if (augmentedDriver instanceof RemoteWebDriver) {
+                            deviceName = String.valueOf(((RemoteWebDriver) augmentedDriver).getCapabilities().getCapability("deviceName"));
+                        }
+                        screenshot = new AShot().shootingStrategy(getScreenshotShuttingStrategy(deviceWidth, deviceName)).takeScreenshot(augmentedDriver);
+                        screenShot = screenshot.getImage();
+                    }
                 } else {
-                    screenshot = (new AShot()).shootingStrategy(ShootingStrategies
-                            .viewportRetina(SpecialKeywords.DEFAULT_SCROLL_TIMEOUT, SpecialKeywords.DEFAULT_BLOCK, SpecialKeywords.DEFAULT_BLOCK,
-                                    SpecialKeywords.DEFAULT_DPR))
-                            .takeScreenshot(augmentedDriver);
-                    screenShot = screenshot.getImage();
+                    // regular web
+                    ru.yandex.qatools.ashot.Screenshot screenshot;
+                        screenshot = (new AShot()).shootingStrategy(ShootingStrategies.viewportPasting(SpecialKeywords.DEFAULT_SCROLL_TIMEOUT))
+                                .takeScreenshot(augmentedDriver);
+                        screenShot = screenshot.getImage();
                 }
-            } else {
-                int deviceWidth = augmentedDriver.manage().window().getSize().getWidth();
-                String deviceName = "";
-                if (augmentedDriver instanceof EventFiringWebDriver) {
-                    deviceName = String.valueOf(((EventFiringWebDriver) augmentedDriver).getCapabilities().getCapability("deviceName"));
-                } else if (augmentedDriver instanceof RemoteWebDriver) {
-                    deviceName = String.valueOf(((RemoteWebDriver) augmentedDriver).getCapabilities().getCapability("deviceName"));
-                }
-                screenshot = new AShot().shootingStrategy(getScreenshotShuttingStrategy(deviceWidth, deviceName)).takeScreenshot(augmentedDriver);
-                screenShot = screenshot.getImage();
+                return screenShot;
             }
-        } else {
-            // regular web
-            ru.yandex.qatools.ashot.Screenshot screenshot;
-                screenshot = (new AShot()).shootingStrategy(ShootingStrategies.viewportPasting(SpecialKeywords.DEFAULT_SCROLL_TIMEOUT))
-                        .takeScreenshot(augmentedDriver);
-                screenShot = screenshot.getImage();
-        }
+        });        
+        
 
+        BufferedImage screenShot = null;
+        // default timeout for driver quit 1/3 of explicit
+        long timeout = Configuration.getInt(Parameter.EXPLICIT_TIMEOUT) / 3;
+        try {
+            LOGGER.debug("starting full size screenshot capturing...");
+            screenShot = (BufferedImage) future.get(timeout, TimeUnit.SECONDS);
+        } catch (java.util.concurrent.TimeoutException e) {
+            String message = "Unable to capture full screenshot during " + timeout + "sec!";
+            LOGGER.error(message);
+        } catch (InterruptedException e) {
+            String message = "Unable to capture full screenshot during " + timeout + "sec!";
+            LOGGER.error(message);
+            Thread.currentThread().interrupt();
+        } catch (ExecutionException e) {
+            if (e.getMessage() != null) {
+                String msg = e.getMessage();
+                if (msg.contains(SpecialKeywords.DRIVER_CONNECTION_REFUSED)
+                        || msg.contains(SpecialKeywords.DRIVER_CONNECTION_REFUSED2)) {
+                    LOGGER.error("Unable to capture full screenshot due to the driver connection refused!");
+                } else if (msg.contains(SpecialKeywords.DRIVER_NO_SUCH_WINDOW)) {
+                    LOGGER.error("Unable to capture full screenshot due to the " + SpecialKeywords.DRIVER_NO_SUCH_WINDOW);
+                } else {
+                    LOGGER.error("ExecutionException error detected on capture full screenshot!", e);
+                }
+            }
+        } catch (Exception e) {
+            // for undefined failure keep full stacktrace to handle later correctly!
+            LOGGER.error("Undefined error on capture full screenshot detected!", e);
+        } finally {
+            LOGGER.debug("finished full size screenshot call.");            
+        }
         return screenShot;
     }
 
@@ -512,12 +560,50 @@ public class Screenshot {
      *
      * @param augmentedDriver
      *            - webDriver.
-     * @exception IOException
+     * @exception Exception can be cause by read() or getScreenshotAs() methods
      *
      * @return screenshot image
      */
     private static BufferedImage takeVisibleScreenshot(WebDriver augmentedDriver) throws Exception {
-    	return ImageIO.read(((TakesScreenshot) augmentedDriver).getScreenshotAs(OutputType.FILE));
+        Future<?> future = Executors.newSingleThreadExecutor().submit(new Callable<BufferedImage>() {
+            public BufferedImage call() throws IOException {
+                return ImageIO.read(((TakesScreenshot) augmentedDriver).getScreenshotAs(OutputType.FILE));
+            }
+        }); 
+        
+        BufferedImage screenShot = null;
+        // default timeout for driver quit 1/3 of explicit
+        long timeout = Configuration.getInt(Parameter.EXPLICIT_TIMEOUT) / 3;
+        try {
+            LOGGER.debug("starting screenshot capturing...");
+            screenShot = (BufferedImage) future.get(timeout, TimeUnit.SECONDS);
+        } catch (java.util.concurrent.TimeoutException e) {
+            String message = "Unable to capture screenshot during " + timeout + " sec!";
+            LOGGER.warn(message);
+        } catch (InterruptedException e) {
+            String message = "Unable to capture screenshot during " + timeout + " sec!";
+            LOGGER.warn(message);
+            Thread.currentThread().interrupt();
+        } catch (ExecutionException e) {
+            if (e.getMessage() != null) {
+                String msg = e.getMessage();
+                if (msg.contains(SpecialKeywords.DRIVER_CONNECTION_REFUSED)
+                        || msg.contains(SpecialKeywords.DRIVER_CONNECTION_REFUSED2)) {
+                    LOGGER.error("ExecutionException error on capture screenshot due to the driver connection refused");
+                } else if (msg.contains(SpecialKeywords.DRIVER_NO_SUCH_WINDOW)) {
+                    LOGGER.error("ExecutionException error on capture screenshot due to the " + SpecialKeywords.DRIVER_NO_SUCH_WINDOW);
+                } else {
+                    LOGGER.error("ExecutionException error detected on capture full screenshot!", e);
+                }
+            }
+        } catch (Exception e) {
+            String message = "Undefined error on capture screenshot detected: " + e.getMessage();
+            LOGGER.error(message);
+        } finally {
+            LOGGER.debug("finished screenshot call.");            
+        }
+        return screenShot;        
+    	
     }
 
 
@@ -546,13 +632,14 @@ public class Screenshot {
 				|| message.contains("A session is either terminated or not started")
                 || message.contains("invalid session id")
                 || message.contains("Session does not exist")
+                || message.contains("not found in active sessions")
 				|| message.contains("Session timed out or not found")
 				|| message.contains("Unable to determine type from: <. Last 1 characters read")
 				|| message.contains("not available and is not among the last 1000 terminated sessions")				
 				|| message.contains("cannot forward the request")
                 || message.contains("connect ECONNREFUSED")
 				|| message.contains("was terminated due to") // FORWARDING_TO_NODE_FAILED, CLIENT_STOPPED_SESSION, PROXY_REREGISTRATION, TIMEOUT, BROWSER_TIMEOUT etc
-				|| message.contains("InvalidElementStateException") || message.contains("stale element reference")
+				|| message.contains("InvalidElementStateException")
 				|| message.contains("no such element: Unable to locate element")
 				|| message.contains("https://www.seleniumhq.org/exceptions/no_such_element.html") // use-case for Safari driver
 				|| message.contains("no such window: window was already closed")
@@ -572,8 +659,12 @@ public class Screenshot {
 				|| message.contains("An unknown error has occurred") //
 				|| message.contains("Unable to find element with")
 				|| message.contains("Unable to locate element")
-				|| message.contains("Illegal base64 character 2e");
-		
+				|| message.contains("Illegal base64 character 2e")
+				|| message.contains("javascript error: Cannot read property 'outerHTML' of null")
+				|| message.contains("Driver connection refused")
+				// carina based errors which means that driver is not ready for screenshoting
+				|| message.contains("Unable to open url during");
+
 		if (!isContains) {
 		    // for released builds put below message to debug  
 		    LOGGER.debug("isCaptured->message: '" + message + "'");
@@ -583,21 +674,27 @@ public class Screenshot {
 		return !isContains;
 	}
 
+    public static boolean compare(BufferedImage bufferedImageExpected, BufferedImage bufferedImageActual, String comment, boolean artifact) {
+        return compare(bufferedImageExpected, bufferedImageActual, comment, artifact, new PointsMarkupPolicy());
+    }
+
     /**
      * Compares two different screenshots
      *
      * @param bufferedImageExpected - old image
      * @param bufferedImageActual   - new image
-     * @param comment  - String
-     * @param artifact  - boolean
+     * @param comment               - String
+     * @param artifact              - boolean
+     * @param markupPolicy          - DiffMarkupPolicy
      * @return boolean
      */
-    public static boolean isScreenshotDiff(BufferedImage bufferedImageExpected, BufferedImage bufferedImageActual, String comment, boolean artifact) {
+    public static boolean compare(BufferedImage bufferedImageExpected, BufferedImage bufferedImageActual, String comment, boolean artifact, DiffMarkupPolicy markupPolicy) {
         String screenName;
         BufferedImage screen;
         try {
-            ImageDiffer imageDiff = new ImageDiffer();
-            ImageDiff diff = imageDiff.makeDiff(bufferedImageExpected, bufferedImageActual);
+            ImageDiffer imageDiffer = new ImageDiffer();
+            imageDiffer.withDiffMarkupPolicy(markupPolicy);
+            ImageDiff diff = imageDiffer.makeDiff(bufferedImageExpected, bufferedImageActual);
             if (diff.hasDiff()) {
                 screen = diff.getMarkedImage();
                 // Define test screenshot root
@@ -617,7 +714,11 @@ public class Screenshot {
                 ImageIO.write(screen, "PNG", screenshot);
 
                 // Uploading comparative screenshot to Amazon S3
-                com.zebrunner.agent.core.registrar.Screenshot.upload(Files.readAllBytes(screenshot.toPath()), Instant.now().toEpochMilli());
+                if (artifact){
+                    com.zebrunner.agent.core.registrar.Artifact.attachToTest(comment + ".png", screenshot);
+                } else {
+                    com.zebrunner.agent.core.registrar.Screenshot.upload(Files.readAllBytes(screenshot.toPath()), Instant.now().toEpochMilli());
+                }
             }
             else {
                 LOGGER.info("Unable to create comparative screenshot, there is no difference between images!");
@@ -625,16 +726,16 @@ public class Screenshot {
             }
         } catch (IOException e) {
             LOGGER.warn("Unable to compare screenshots due to the I/O issues!");
-            LOGGER.debug(e.getMessage(), e);
+            LOGGER.debug(ERROR_STACKTRACE, e);
         } catch (WebDriverException e) {
             LOGGER.warn("Unable to compare screenshots due to the WebDriverException!");
-            LOGGER.debug(e.getMessage(), e);
+            LOGGER.debug(ERROR_STACKTRACE, e);
         } catch (NullPointerException e) {
             LOGGER.warn("Unable to compare screenshots due to the NullPointerException!");
-            LOGGER.debug(e.getMessage(), e);
+            LOGGER.debug(ERROR_STACKTRACE, e);
         } catch (Exception e) {
             LOGGER.warn("Unable to compare screenshots!");
-            LOGGER.debug(e.getMessage(), e);
+            LOGGER.debug(ERROR_STACKTRACE, e);
         } finally {
             // do nothing
         }
@@ -673,6 +774,8 @@ public class Screenshot {
 
     /**
      * Cast Carina driver to WebDriver removing all extra listeners (use it in problematic places where you handle all exceptions)
+     *
+     * @param drv WebDriver
      *
      * @return WebDriver
      */

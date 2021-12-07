@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2013-2020 QaProSoft (http://www.qaprosoft.com).
+ * Copyright 2020-2022 Zebrunner Inc (https://www.zebrunner.com).
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,8 +42,7 @@ public class TestRailTest implements ITestRailManager {
 
     private static final String PROJECT_ID = "1";
     private static final String SUITE_ID = "1";
-    
-    private static final String VERIFICATION_PREFIX = PROJECT_ID + "-" + SUITE_ID + "-";
+
     private static final String TEST_ID = "5,6,65500";
     private static final String EXPECTED_TEST_ID = "65500";
     private static final String FIRST_TEST_ID = "65536";
@@ -51,7 +50,6 @@ public class TestRailTest implements ITestRailManager {
     
     @BeforeSuite()
     public void initData(ITestContext context) {
-        context.getSuite().setAttribute(SpecialKeywords.TESTRAIL_PROJECT_ID, PROJECT_ID);
         context.getSuite().setAttribute(SpecialKeywords.TESTRAIL_SUITE_ID, SUITE_ID);
     }
 
@@ -62,7 +60,7 @@ public class TestRailTest implements ITestRailManager {
 
         Set<String> testRailUdids = getTestRailCasesUuid(result);
 
-        Assert.assertTrue(testRailUdids.contains(VERIFICATION_PREFIX + EXPECTED_TEST_ID), "TestRail should contain id=" + EXPECTED_TEST_ID);
+        Assert.assertTrue(testRailUdids.contains(EXPECTED_TEST_ID), "TestRail should contain id=" + EXPECTED_TEST_ID);
 
         Assert.assertEquals(testRailUdids.size(), 3);
 
@@ -77,7 +75,7 @@ public class TestRailTest implements ITestRailManager {
 
         Set<String> testRailUdids = getTestRailCasesUuid(result);
 
-        Assert.assertTrue(testRailUdids.contains(VERIFICATION_PREFIX + FIRST_TEST_ID), "TestRail should contain id=" + FIRST_TEST_ID);
+        Assert.assertTrue(testRailUdids.contains(FIRST_TEST_ID), "TestRail should contain id=" + FIRST_TEST_ID);
 
         Assert.assertEquals(testRailUdids.size(), 1);
     }
@@ -90,7 +88,7 @@ public class TestRailTest implements ITestRailManager {
 
         Set<String> testRailUdids = getTestRailCasesUuid(result);
 
-        Assert.assertTrue(testRailUdids.contains(VERIFICATION_PREFIX + FIRST_TEST_ID), "TestRail should contain id=" + FIRST_TEST_ID);
+        Assert.assertTrue(testRailUdids.contains(FIRST_TEST_ID), "TestRail should contain id=" + FIRST_TEST_ID);
 
         LOGGER.info("TestRail list: " + testRailUdids.toString());
 
@@ -105,9 +103,9 @@ public class TestRailTest implements ITestRailManager {
 
         Set<String> testRailUdids = getTestRailCasesUuid(result);
 
-        Assert.assertTrue(testRailUdids.contains(VERIFICATION_PREFIX + FIRST_TEST_ID), "TestRail should contain id=" + FIRST_TEST_ID);
+        Assert.assertTrue(testRailUdids.contains(FIRST_TEST_ID), "TestRail should contain id=" + FIRST_TEST_ID);
 
-        Assert.assertTrue(testRailUdids.contains(VERIFICATION_PREFIX + SECOND_TEST_ID), "TestRail should contain id=" + SECOND_TEST_ID);
+        Assert.assertTrue(testRailUdids.contains(SECOND_TEST_ID), "TestRail should contain id=" + SECOND_TEST_ID);
 
         Assert.assertEquals(testRailUdids.size(), 2);
     }
@@ -126,7 +124,7 @@ public class TestRailTest implements ITestRailManager {
 
         testRailUdids = getTestRailCasesUuid(result);
 
-        Assert.assertTrue(testRailUdids.contains(VERIFICATION_PREFIX + FIRST_TEST_ID), "TestRail should contain id=" + FIRST_TEST_ID);
+        Assert.assertTrue(testRailUdids.contains(FIRST_TEST_ID), "TestRail should contain id=" + FIRST_TEST_ID);
 
         Assert.assertEquals(testRailUdids.size(), 1);
 
@@ -134,7 +132,7 @@ public class TestRailTest implements ITestRailManager {
 
         testRailUdids = getTestRailCasesUuid(result);
 
-        Assert.assertTrue(testRailUdids.contains(VERIFICATION_PREFIX + SECOND_TEST_ID), "TestRail should contain id=" + SECOND_TEST_ID);
+        Assert.assertTrue(testRailUdids.contains(SECOND_TEST_ID), "TestRail should contain id=" + SECOND_TEST_ID);
 
         Assert.assertEquals(testRailUdids.size(), 1);
 
@@ -152,9 +150,9 @@ public class TestRailTest implements ITestRailManager {
         Set<String> testRailTags = getTestRailCasesUuid(result);
 
         Assert.assertEquals(testRailTags.size(), 3);
-        Assert.assertTrue(testRailTags.contains(VERIFICATION_PREFIX + FIRST_TEST_ID), "TestRail should contain id=" + FIRST_TEST_ID);
-        Assert.assertTrue(testRailTags.contains(VERIFICATION_PREFIX + "3333"), "TestRail should contain id=" + "3333");
-        Assert.assertTrue(testRailTags.contains(VERIFICATION_PREFIX + "5555"), "TestRail should contain id=" + "5555");
+        Assert.assertTrue(testRailTags.contains(FIRST_TEST_ID), "TestRail should contain id=" + FIRST_TEST_ID);
+        Assert.assertTrue(testRailTags.contains("3333"), "TestRail should contain id=" + "3333");
+        Assert.assertTrue(testRailTags.contains("5555"), "TestRail should contain id=" + "5555");
     }
 
     @Test
@@ -165,16 +163,31 @@ public class TestRailTest implements ITestRailManager {
 
         Set<String> testRailUdids = getTestRailCasesUuid(result);
 
-        Assert.assertTrue(testRailUdids.contains(VERIFICATION_PREFIX + FIRST_TEST_ID), "TestRail should contain id=" + FIRST_TEST_ID);
+        Assert.assertTrue(testRailUdids.contains(FIRST_TEST_ID), "TestRail should contain id=" + FIRST_TEST_ID);
         Assert.assertEquals(testRailUdids.size(), 1);
 
         R.CONFIG.put(Parameter.LOCALE.getKey(), "fr");
         testRailUdids = getTestRailCasesUuid(result);
 
-        Assert.assertTrue(testRailUdids.contains(VERIFICATION_PREFIX + SECOND_TEST_ID), "TestRail should contain id=" + SECOND_TEST_ID);
+        Assert.assertTrue(testRailUdids.contains(SECOND_TEST_ID), "TestRail should contain id=" + SECOND_TEST_ID);
         Assert.assertEquals(testRailUdids.size(), 1);
         
         R.CONFIG.put(Parameter.LOCALE.getKey(), "en");
+    }
+    
+    @Test
+    @TestRailCases(testCasesId = FIRST_TEST_ID, suiteId = "1") //1 is default suiteId value during unit testing!
+    @TestRailCases(testCasesId = SECOND_TEST_ID, suiteId = "2")
+    public void testTestRailBySuite() {
+        ITestResult result = Reporter.getCurrentTestResult();
+
+        Set<String> testRailUdids = getTestRailCasesUuid(result);
+
+        testRailUdids = getTestRailCasesUuid(result);
+
+        Assert.assertTrue(testRailUdids.contains(FIRST_TEST_ID), "TestRail should contain id=" + FIRST_TEST_ID);
+
+        Assert.assertEquals(testRailUdids.size(), 1);
     }
 
 }

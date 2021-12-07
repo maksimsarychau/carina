@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2013-2020 QaProSoft (http://www.qaprosoft.com).
+ * Copyright 2020-2022 Zebrunner Inc (https://www.zebrunner.com).
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,8 @@ import com.qaprosoft.carina.core.foundation.utils.Configuration.Parameter;
 public class ThreadLogAppender extends AppenderSkeleton {
     // single buffer for each thread test.log file
     private final ThreadLocal<BufferedWriter> testLogBuffer = new ThreadLocal<BufferedWriter>();
+    private ThreadLocal<File> currentTestDirectory = new ThreadLocal<>();
+    private final String MAX_LOG_FILE_SIZE = "1024";
     private long bytesWritten;
     @Override
     public void append(LoggingEvent event) {
@@ -49,9 +51,16 @@ public class ThreadLogAppender extends AppenderSkeleton {
         try {
 
             BufferedWriter fw = testLogBuffer.get();
+
+            // check does writer log to the correct test directory, if not - reinit it
+            if(currentTestDirectory.get() != ReportContext.getTestDir()){
+                fw = null;
+            }
+
             if (fw == null) {
                 // 1st request to log something for this thread/test
                 File testLogFile = new File(ReportContext.getTestDir() + "/test.log");
+                currentTestDirectory.set(ReportContext.getTestDir());
                 if (!testLogFile.exists()){
                     testLogFile.createNewFile();
                     bytesWritten = 0;
@@ -118,7 +127,7 @@ public class ThreadLogAppender extends AppenderSkeleton {
 
     private void ensureCapacity(int len) throws IOException {
         long newBytesWritten = this.bytesWritten + len;
-        long maxMegaBytes = Configuration.getLong(Parameter.MAX_LOG_FILE_SIZE) * 1024 * 1024;
+        long maxMegaBytes = Long.parseLong(MAX_LOG_FILE_SIZE) * 1024 * 1024;
 
         if (newBytesWritten > maxMegaBytes)
             throw new IOException("test Log file size exceeded core limit: " + newBytesWritten + " > " + maxMegaBytes);

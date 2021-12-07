@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2013-2020 QaProSoft (http://www.qaprosoft.com).
+ * Copyright 2020-2022 Zebrunner Inc (https://www.zebrunner.com).
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -79,7 +79,7 @@ public class TestNamingService {
     /**
      * Set full test name based on test class, method and other generic information. It is generated based by ITestResult object.
      * 
-     * @param ITestResult result
+     * @param result ITestResult
      * @return String test name
      */     
     @SuppressWarnings("unlikely-arg-type")
@@ -143,16 +143,18 @@ public class TestNamingService {
         // adjust testName using pattern
         ITestNGMethod m = result.getMethod();
         String name = Configuration.get(Configuration.Parameter.TEST_NAMING_PATTERN);
+        LOGGER.debug("TestNamingPattern: " + name);
         name = name.replace(SpecialKeywords.METHOD_NAME, m.getMethodName());
         name = name.replace(SpecialKeywords.METHOD_PRIORITY, String.valueOf(m.getPriority()));
         name = name.replace(SpecialKeywords.METHOD_THREAD_POOL_SIZE, String.valueOf(m.getThreadPoolSize()));
 
         if (m.getDescription() != null) {
+            LOGGER.debug("Test method description: " + m.getDescription());
             name = name.replace(SpecialKeywords.METHOD_DESCRIPTION, m.getDescription());
         } else {
             name = name.replace(SpecialKeywords.METHOD_DESCRIPTION, "");
         }
-
+        
         return name;
     }
     
@@ -169,7 +171,8 @@ public class TestNamingService {
     /**
      * calculate InvocationCount number based on test name
      * 
-     * @param String test
+     * @param testResult ITestResult
+     * @param testName String
      * @return int invCount
      */
     private static String appendInvocationCount(ITestResult testResult, String testName) {

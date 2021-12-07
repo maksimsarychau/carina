@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2013-2020 QaProSoft (http://www.qaprosoft.com).
+ * Copyright 2020-2022 Zebrunner Inc (https://www.zebrunner.com).
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,6 @@
  * limitations under the License.
  *******************************************************************************/
 package com.qaprosoft.carina.core.foundation.api;
-
-import static com.qaprosoft.carina.core.foundation.api.http.Headers.ACCEPT_ALL_TYPES;
-import static com.qaprosoft.carina.core.foundation.api.http.Headers.JSON_CONTENT_TYPE;
-import static com.qaprosoft.carina.core.foundation.api.http.Headers.XML_CONTENT_TYPE;
 
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
@@ -34,6 +30,7 @@ import com.qaprosoft.apitools.builder.PropertiesProcessorMain;
 import com.qaprosoft.apitools.message.TemplateMessage;
 import com.qaprosoft.apitools.validation.JsonKeywordsComparator;
 import com.qaprosoft.apitools.validation.JsonValidator;
+import com.qaprosoft.apitools.validation.XmlCompareMode;
 import com.qaprosoft.apitools.validation.XmlValidator;
 import com.qaprosoft.carina.core.foundation.api.annotation.ContentType;
 import com.qaprosoft.carina.core.foundation.api.annotation.RequestTemplatePath;
@@ -46,6 +43,8 @@ import io.restassured.response.Response;
 public abstract class AbstractApiMethodV2 extends AbstractApiMethod {
     private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
     
+    private static final String ACCEPT_ALL_HEADER = "Accept=*/*";
+
     private Properties properties;
     private String rqPath;
     private String rsPath;
@@ -57,14 +56,14 @@ public abstract class AbstractApiMethodV2 extends AbstractApiMethod {
      */
     public AbstractApiMethodV2() {
         super();
-        setHeaders(ACCEPT_ALL_TYPES.getHeaderValue());
+        setHeaders(ACCEPT_ALL_HEADER);
         initPathsFromAnnotation();
         setProperties(new Properties());
     }
 
     public AbstractApiMethodV2(String rqPath, String rsPath, String propertiesPath) {
         super();
-        setHeaders(ACCEPT_ALL_TYPES.getHeaderValue());
+        setHeaders(ACCEPT_ALL_HEADER);
         setProperties(propertiesPath);
         this.rqPath = rqPath;
         this.rsPath = rsPath;
@@ -72,7 +71,7 @@ public abstract class AbstractApiMethodV2 extends AbstractApiMethod {
 
     public AbstractApiMethodV2(String rqPath, String rsPath, Properties properties) {
         super();
-        setHeaders(ACCEPT_ALL_TYPES.getHeaderValue());
+        setHeaders(ACCEPT_ALL_HEADER);
         if (properties != null) {
             this.properties = PropertiesProcessorMain.processProperties(properties);
         }
@@ -220,12 +219,35 @@ public abstract class AbstractApiMethodV2 extends AbstractApiMethod {
     }
 
     /**
-     * @param validationFlags
-     *            parameter that specifies how to validate JSON response. Currently only array validation flag is supported.
-     *            Use JsonCompareKeywords.ARRAY_CONTAINS enum value for that
+     * Validates Xml response using custom options
+     * 
+     * @param mode - determines how to compare 2 XMLs. See {@link XmlCompareMode} for more details.
+     */
+    public void validateXmlResponse(XmlCompareMode mode) {
+        if (actualRsBody == null) {
+            throw new RuntimeException("Actual response body is null. Please make API call before validation response");
+        }
+        if (rsPath == null) {
+            throw new RuntimeException("Please specify rsPath to make Response body validation");
+        }
+        XmlValidator.validateXml(actualRsBody, rsPath, mode);
+    }
+
+    /**
+     * @param validationFlags parameter that specifies how to validate JSON response. Currently only array validation flag is supported.
+     *                        Use JsonCompareKeywords.ARRAY_CONTAINS enum value for that
      */
     public void validateResponse(String... validationFlags) {
-        validateResponse(JSONCompareMode.NON_EXTENSIBLE, validationFlags);
+        switch (contentTypeEnum) {
+        case JSON:
+            validateResponse(JSONCompareMode.NON_EXTENSIBLE, validationFlags);
+            break;
+        case XML:
+            validateXmlResponse(XmlCompareMode.STRICT);
+            break;
+        default:
+            throw new RuntimeException("Unsupported argument of content type");
+        }
     }
 
     /**
@@ -239,16 +261,19 @@ public abstract class AbstractApiMethodV2 extends AbstractApiMethod {
         if (actualRsBody == null) {
             throw new RuntimeException("Actual response body is null. Please make API call before validation response");
         }
-        ContentType contentType = this.getClass().getAnnotation(ContentType.class);
-        if (contentType == null || contentType.type().equals(JSON_CONTENT_TYPE.getHeaderValue())) {
+
+        switch (contentTypeEnum) {
+        case JSON:
             TemplateMessage tm = new TemplateMessage();
             tm.setTemplatePath(schemaPath);
             String schema = tm.getMessageText();
             JsonValidator.validateJsonAgainstSchema(schema, actualRsBody);
-        } else if (contentType.type().equals(XML_CONTENT_TYPE.getHeaderValue())) {
+            break;
+        case XML:
             XmlValidator.validateXmlAgainstSchema(schemaPath, actualRsBody);
-        } else {
-            throw new RuntimeException("Unsupported argument of content type");
+            break;
+        default:
+            throw new RuntimeException("Unsupported argument of content type: " + contentTypeEnum);
         }
     }
 

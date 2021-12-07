@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2013-2020 QaProSoft (http://www.qaprosoft.com).
+ * Copyright 2020-2022 Zebrunner Inc (https://www.zebrunner.com).
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import java.util.Map;
 import org.testng.ITestContext;
 import org.testng.ITestNGMethod;
 
-import com.qaprosoft.carina.core.foundation.commons.SpecialKeywords;
 import com.qaprosoft.carina.core.foundation.dataprovider.annotations.XlsDataSourceParameters;
 import com.qaprosoft.carina.core.foundation.dataprovider.core.groupping.GroupByMapper;
 import com.qaprosoft.carina.core.foundation.dataprovider.parser.DSBean;
@@ -58,11 +57,6 @@ public class XlsDataProvider extends BaseDataProvider {
             GroupByMapper.getInstanceInt().add(argsList.indexOf(groupByParameter));
             GroupByMapper.getInstanceStrings().add(groupByParameter);
         }
-
-        String jiraColumn = context.getCurrentXmlTest().getParameter(SpecialKeywords.EXCEL_DS_JIRA);
-
-        if (!parameters.jiraColumn().isEmpty())
-            jiraColumn = parameters.jiraColumn();
 
         String testRailColumn = "";
         if (!parameters.testRailColumn().isEmpty())
@@ -140,12 +134,6 @@ public class XlsDataProvider extends BaseDataProvider {
 
             // add testMethoOwner from xls datasource to special hashMap
             addValueToSpecialMap(testMethodOwnerArgsMap, testMethodOwnerColumn, String.valueOf(Arrays.hashCode(args[rowIndex])), xlsRow);
-
-            // add jira ticket from xls datasource to special hashMap
-            addValueToSpecialMap(jiraArgsMap, jiraColumn, String.valueOf(Arrays.hashCode(args[rowIndex])), xlsRow);
-
-            // add bug id from xls datasource to special hashMap
-            addValueToSpecialMap(bugArgsMap, bugColumn, String.valueOf(Arrays.hashCode(args[rowIndex])), xlsRow);
 
             // add testrails cases from xls datasource to special hashMap
             addValueToSpecialMap(testRailsArgsMap, testRailColumn, String.valueOf(Arrays.hashCode(args[rowIndex])), xlsRow);

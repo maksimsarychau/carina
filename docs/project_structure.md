@@ -1,5 +1,7 @@
 [![Carina - Project structure](https://raw.githubusercontent.com/qaprosoft/carina/master/docs/img/video.png)](https://youtu.be/I1u07JspECE)
 
+Note: Starting from 7.0.4 consider that instead of `extends AbstractTest` we have to `implements IAbstractTest` interface
+
 Carina test project is structured as a standard Maven project:
 ```
 carina-demo
@@ -11,14 +13,14 @@ carina-demo
     |-- xls
 |-- src/main/java
 |-- src/main/resources
-    |-- l18n
+    |-- L10N
 ```
 
 * **src/test/java** - contains test classes organized using TestNG annotations
 
 ![src/test/java](img/002-Project-structure.png)
 
-* **src/test/resources** - contains TestNG xml files, API templates and XLS data providers
+* **src/test/resources** - contains TestNG xml files, API templates and XLS/CSV data providers etc
 
 ![src/test/resources](img/003-Project-structure.png)
 
@@ -26,6 +28,6 @@ carina-demo
 
 ![src/main/java](img/004-Project-structure.png)
 
-* **src/main/resources** - contains l18n bundles, configuration properties files and MyBatis profiles if needed
+* **src/main/resources** - contains L10N resources, configuration properties files and MyBatis profiles if needed
 
 ![src/main/resources](img/005-Project-structure.png)

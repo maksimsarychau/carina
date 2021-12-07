@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2013-2020 QaProSoft (http://www.qaprosoft.com).
+ * Copyright 2020-2022 Zebrunner Inc (https://www.zebrunner.com).
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -130,7 +130,7 @@ public class DateTimeSettingsPage extends MobileAbstractPage implements IAndroid
     }
 
     /**
-     * setup timezone region (this method is responsible for setting up timezone region, req. for OS version > 8)
+     * setup timezone region (this method is responsible for setting up timezone region, req. for OS version &gt; 8)
      *
      * @param timezoneRegion         String
      * @param deviceOsVersion  int

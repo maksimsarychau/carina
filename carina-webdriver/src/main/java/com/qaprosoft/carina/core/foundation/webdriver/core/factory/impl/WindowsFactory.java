@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2013-2020 QaProSoft (http://www.qaprosoft.com).
+ * Copyright 2020-2022 Zebrunner Inc (https://www.zebrunner.com).
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
 
 import com.qaprosoft.carina.core.foundation.commons.SpecialKeywords;
 import com.qaprosoft.carina.core.foundation.utils.Configuration;
-import com.qaprosoft.carina.core.foundation.webdriver.core.capability.impl.windows.WindowsCapabilies;
+import com.qaprosoft.carina.core.foundation.webdriver.core.capability.impl.windows.WindowsCapabilities;
 import com.qaprosoft.carina.core.foundation.webdriver.core.factory.AbstractFactory;
 
 import io.appium.java_client.windows.WindowsDriver;
@@ -45,7 +45,7 @@ public class WindowsFactory extends AbstractFactory {
     public WebDriver create(String name, DesiredCapabilities capabilities, String seleniumHost) {
 
         if (seleniumHost == null) {
-            seleniumHost = Configuration.get(Configuration.Parameter.SELENIUM_HOST);
+            seleniumHost = Configuration.getSeleniumUrl();
         }
         LOGGER.debug("selenium: " + seleniumHost);
 
@@ -58,7 +58,7 @@ public class WindowsFactory extends AbstractFactory {
         if (isCapabilitiesEmpty(capabilities)) {
             capabilities = getCapabilities(name);
         }
-        
+
         URL url;
         try {
             url = new URL(seleniumHost);
@@ -71,7 +71,7 @@ public class WindowsFactory extends AbstractFactory {
     }
 
     private DesiredCapabilities getCapabilities(String name) {
-        return new WindowsCapabilies().getCapability(name);
+        return new WindowsCapabilities().getCapability(name);
     }
 
     @Override

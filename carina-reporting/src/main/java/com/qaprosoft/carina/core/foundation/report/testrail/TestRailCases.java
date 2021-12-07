@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2013-2020 QaProSoft (http://www.qaprosoft.com).
+ * Copyright 2020-2022 Zebrunner Inc (https://www.zebrunner.com).
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ public @interface TestRailCases {
 
     String platform() default "";
     String locale() default "";
+    String suiteId() default "";
 
     @Retention(RetentionPolicy.RUNTIME)
     @Target({ElementType.METHOD})

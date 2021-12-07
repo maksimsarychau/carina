@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2013-2020 QaProSoft (http://www.qaprosoft.com).
+ * Copyright 2020-2022 Zebrunner Inc (https://www.zebrunner.com).
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -85,12 +85,9 @@ public class Device implements IDriverPool {
     }
 
     public Device(Capabilities capabilities) {
-        // 1. read from CONFIG and specify if any: capabilities.deviceName, capabilities.device (browserstack notation)
+        // 1. read from CONFIG and specify if any: capabilities.deviceName
         // 2. read from capabilities object and set if if it is not null
         String deviceName = R.CONFIG.get(SpecialKeywords.MOBILE_DEVICE_NAME);
-        if (!R.CONFIG.get(SpecialKeywords.MOBILE_DEVICE_BROWSERSTACK_NAME).isEmpty()) {
-            deviceName = R.CONFIG.get(SpecialKeywords.MOBILE_DEVICE_BROWSERSTACK_NAME);
-        }
         if (capabilities.getCapability("deviceName") != null) {
             deviceName = capabilities.getCapability("deviceName").toString();
         }
@@ -111,15 +108,8 @@ public class Device implements IDriverPool {
         setType(deviceType);
 
         setOs(Configuration.getPlatform(new DesiredCapabilities(capabilities)));
-
-        String platformVersion = R.CONFIG.get(SpecialKeywords.MOBILE_DEVICE_PLATFORM_VERSION);
-        if (!R.CONFIG.get(SpecialKeywords.MOBILE_DEVICE_BROWSERSTACK_PLATFORM_VERSION).isEmpty()) {
-            platformVersion = R.CONFIG.get(SpecialKeywords.MOBILE_DEVICE_BROWSERSTACK_PLATFORM_VERSION);
-        }
-        if (capabilities.getCapability("platformVersion") != null) {
-            platformVersion = capabilities.getCapability("platformVersion").toString();
-        }
-        setOsVersion(platformVersion);
+        
+        setOsVersion(Configuration.getPlatformVersion(new DesiredCapabilities(capabilities)));
 
         String deviceUdid = R.CONFIG.get(SpecialKeywords.MOBILE_DEVICE_UDID);
         if (capabilities.getCapability("udid") != null) {
@@ -175,7 +165,7 @@ public class Device implements IDriverPool {
         
         setCapabilities(capabilities);
     }
-    
+
     public String getName() {
         return name;
     }
@@ -336,6 +326,7 @@ public class Device implements IDriverPool {
         String[] cmd = CmdLine.insertCommandsAfter(executor.getDefaultCmd(), "disconnect", getRemoteURL());
         executor.execute(cmd);
 
+        isAdbEnabled = false;
     }
 
     public String getFullPackageByName(final String name) {

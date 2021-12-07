@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2013-2020 QaProSoft (http://www.qaprosoft.com).
+ * Copyright 2020-2022 Zebrunner Inc (https://www.zebrunner.com).
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,24 +16,23 @@
 package com.qaprosoft.carina.core.foundation.report;
 
 import java.nio.charset.Charset;
-import java.util.ArrayList;
 import java.util.List;
 
 public class TestResultItem {
     private String pack = null;
     private String test = null;
+    private String description = null;    
     private String linkToLog = null;
     private String linkToScreenshots = null;
     private String failReason = null;
-    private String description = null;
-    private List<String> jiraTickets = new ArrayList<String>(); // empty list
     private TestResultType result = null;
 
     private boolean config = false;
 
-    public TestResultItem(String group, String test, TestResultType result, String linkToScreenshots, String linkToLog, String failReason) {
+    public TestResultItem(String group, String test, String desc, TestResultType result, String linkToScreenshots, String linkToLog, String failReason) {
         this.pack = group;
         this.test = test;
+        this.description = desc;
         this.result = result;
         this.linkToLog = linkToLog;
         this.linkToScreenshots = linkToScreenshots;
@@ -46,6 +45,10 @@ public class TestResultItem {
 
     public String getTest() {
         return test;
+    }
+    
+    public String getDescription() {
+        return description;
     }
 
     public TestResultType getResult() {
@@ -67,23 +70,6 @@ public class TestResultItem {
             return failReason;
         }
 
-    }
-
-    //TODO: move description init into the constructor
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public List<String> getJiraTickets() {
-        return jiraTickets;
-    }
-
-    public void setJiraTickets(List<String> jiraTickets) {
-        this.jiraTickets = jiraTickets;
     }
 
     public String hash() {

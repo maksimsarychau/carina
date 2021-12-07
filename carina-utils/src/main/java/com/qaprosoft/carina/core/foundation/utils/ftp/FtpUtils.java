@@ -1,3 +1,18 @@
+/*******************************************************************************
+ * Copyright 2020-2022 Zebrunner Inc (https://www.zebrunner.com).
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *******************************************************************************/
 package com.qaprosoft.carina.core.foundation.utils.ftp;
 
 import java.io.ByteArrayInputStream;
@@ -18,7 +33,7 @@ public class FtpUtils {
     private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 	private static final int DEFAULT_PORT = 21;
 	
-	//TODO: https://github.com/qaprosoft/carina/issues/954
+	//TODO: https://github.com/zebrunner/carina/issues/954
 	// migrate FtpUtils methods to use com.qaprosoft.carina.core.foundation.utils.async.AsyncOperation
 	private static int uploading = 0;
 

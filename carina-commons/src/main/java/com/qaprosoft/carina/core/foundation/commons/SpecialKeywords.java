@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2013-2020 QaProSoft (http://www.qaprosoft.com).
+ * Copyright 2020-2022 Zebrunner Inc (https://www.zebrunner.com).
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@ package com.qaprosoft.carina.core.foundation.commons;
  * @author Alex Khursevich
  */
 public class SpecialKeywords {
-    public static final String TEST_RUN_ID = java.util.UUID.randomUUID().toString();
     public static final String IGNORE = "$ignore";
     public static final String GENERATE = "\\{generate:\\d*\\}";
     public static final String GENERATE_UUID = "\\{generate_uuid\\}";
@@ -41,7 +40,6 @@ public class SpecialKeywords {
     public static final String MUST_OVERRIDE = "{must_override}";
     public static final String EXCEL_DS_ARGS = "{excel_ds_args}";
     public static final String EXCEL_DS_UID = "{excel_ds_uid}";
-    public static final String EXCEL_DS_JIRA = "{excel_ds_jira}";
     public static final String EXCEL_DS_FLAG = "{excel_ds_flag}";
     public static final String EXCEL_DS_FILE = "{excel_ds_file}";
     public static final String EXCEL_DS_SHEET = "{excel_ds_sheet}";
@@ -50,7 +48,6 @@ public class SpecialKeywords {
     public static final String DS_CUSTOM_PROVIDER = "{ds_custom_provider}";
     public static final String DS_ARGS = "{ds_args}";
     public static final String DS_UID = "{ds_uid}";
-    public static final String DS_JIRA = "{ds_jira}";
     public static final String DS_FLAG = "{ds_flag}";
     public static final String DS_FILE = "{ds_file}";
     public static final String DS_EXECUTE_COLUMN = "{ds_execute_column}";
@@ -59,7 +56,6 @@ public class SpecialKeywords {
 
     public static final String TEST_LOG_ID = "{test_log_id}";
 
-    public static final String JIRA_TICKET = "JIRA#";
     public static final String TEST_FAILURE_MESSAGE = "testFailureMessage";
     public static final String UUID = "UUID";
 
@@ -72,11 +68,8 @@ public class SpecialKeywords {
     public static final String METHOD_THREAD_POOL_SIZE = "{method_thread_pool_size}";
 
     public static final String TEST_NAME_ARGS_MAP = "testNameArgsMap";
-    public static final String JIRA_ARGS_MAP = "jiraArgsMap";
-    
-    public static final String TESTRAIL_SUITE_ID = "TestRailSuiteId";
-    public static final String TESTRAIL_PROJECT_ID = "TestRailProjectId";
-    public static final String TESTRAIL_TESTCASE_UUID = "com.zebrunner.app/tcm.testrail.testcase-id";
+
+    public static final String TESTRAIL_SUITE_ID = "com.zebrunner.app/tcm.testrail.suite-id";
 
     public static final String BEFORE_TEST_METHOD = "executeBeforeTestMethod";
 
@@ -95,6 +88,7 @@ public class SpecialKeywords {
     public static final String MAC = "MAC";
     public static final String WINDOWS = "Windows";
     public static final String TVOS = "TVOS";
+    public static final String API = "API";
 
     public static final String NATIVE = "native";
 
@@ -107,10 +101,6 @@ public class SpecialKeywords {
     public static final String FAILED = "FAILED";
     public static final String SKIPPED = "SKIPPED";
 
-    public static final String ZAFIRA_PROJECT = "zafira_project";
-    public static final String ACTUAL_BROWSER_VERSION = "actual_browser_version";
-    
-
     public static final String COMMENT = "comment";
     
     public static final String ANDROID_START_NODE = "<android[\\w\\.]* ";
@@ -120,6 +110,11 @@ public class SpecialKeywords {
 
     public static final String TEST_PRIORITY_TAG = "priority";
     public static final String TEST_FEATURE_TAG = "feature";
+    
+    public final static String DRIVER_CONNECTION_REFUSED = "Driver connection refused";
+    public final static String DRIVER_CONNECTION_REFUSED2 = "Expected to read a START_MAP but instead have: END. Last 0 characters read";
+    public final static String DRIVER_NO_SUCH_WINDOW = "no such window: window was already closed";
+
     
     // ------------- CARINA CRYPTO DEFAULT PROPERTIES -----------------
     public static final String CRYPTO_ALGORITHM = "AES/ECB/PKCS5Padding";
@@ -133,22 +128,18 @@ public class SpecialKeywords {
 
     // ------------- CAPABILITIES PROPERTIES --------------------------
     public static final String CAPABILITIES = "capabilities";
-    public static final String ENABLE_VIDEO = "capabilities.enableVideo";
-    public static final String ENABLE_LOG = "capabilities.enableLog";
-    public static final String ENABLE_METADATA = "capabilities.enableMetadata";
-    public static final String PLATFORM = "capabilities.platform";
     public static final String PLATFORM_NAME = "capabilities.platformName";
     public static final String PLATFORM_VERSION = "capabilities.platformVersion";
+    public static final String BROWSERSTACK_PLATFORM_NAME = "capabilities.os";
+    public static final String BROWSERSTACK_PLATFORM_VERSION = "capabilities.os_version";
 
     public static final String ADB_EXEC_TIMEOUT = "capabilities.adbExecTimeout";
     public static final String MOBILE_DEVICE_UDID = "capabilities.udid";
     public static final String MOBILE_DEVICE_NAME = "capabilities.deviceName";
-    public static final String MOBILE_DEVICE_BROWSERSTACK_NAME = "capabilities.device";
     public static final String MOBILE_DEVICE_TYPE = "capabilities.deviceType";
     //TODO: switch into the PLATFORM_NAME later
     public static final String MOBILE_DEVICE_PLATFORM = "capabilities.platformName";
     public static final String MOBILE_DEVICE_PLATFORM_VERSION = "capabilities.platformVersion";
-    public static final String MOBILE_DEVICE_BROWSERSTACK_PLATFORM_VERSION = "capabilities.os_version";
     public static final String MOBILE_DEVICE_REMOTE_URL = "capabilities.remoteURL";
     public static final String MOBILE_APP_ACITIVTY = "capabilities.appActivity";
     public static final String MOBILE_APP_PACKAGE = "capabilities.appPackage";
@@ -164,13 +155,15 @@ public class SpecialKeywords {
     
     // ------------- qTEST PROPERTIES -------------------------------
     public static final String QTEST_TESTCASE_UUID = "com.zebrunner.app/tcm.qtest.testcase-id";
-    public static final String QTEST_PROJECT_ID = "qTestProjectId";
+    public static final String QTEST_PROJECT_ID = "com.zebrunner.app/tcm.qtest.project-id";
 
 
     // ------------- TEST EXECUTION FILTERS CONSTANTS ---------------
     public static final String RULE_FILTER_VALUE_SPLITTER = "=>";
     public static final String RULE_FILTER_SPLITTER = ";;";
     public static final String RULE_FILTER_AND_CONDITION = "&&";
+    public static final String RULE_FILTER_OR_CONDITION = "||";
+    public static final String RULE_FILTER_EXCLUDE_CONDITION = "!!";
 
 
     // ------------- Mobile screenshots cutting strategies configuration  ---------------
@@ -194,6 +187,4 @@ public class SpecialKeywords {
     public static final String CUCUMBER_REPORT_SUBFOLDER = "cucumber-html-reports";
     public static final String CUCUMBER_REPORT_FILE_NAME = "overview-features.html";
     
-    
-    public final static String DEFAULT_VIDEO_FILENAME = "%s.mp4";
 }

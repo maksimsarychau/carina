@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2013-2020 QaProSoft (http://www.qaprosoft.com).
+ * Copyright 2020-2022 Zebrunner Inc (https://www.zebrunner.com).
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -199,7 +199,7 @@ public class AndroidService implements IDriverPool, IAndroidUtils {
             LOGGER.info("Found activity name for application in focus : " + activityName);
             return packageName + "/" + activityName;
         } catch (Exception e) {
-            LOGGER.error(e.getMessage(), e);
+            LOGGER.error("Error during getting apk details", e);
             return "";
         }
     }
@@ -419,7 +419,7 @@ public class AndroidService implements IDriverPool, IAndroidUtils {
             CommonUtils.pause(2); // wait while notifications are playing animation to
             // appear to avoid missed taps
         } catch (Exception e) {
-            LOGGER.error(e.getMessage(), e);
+            LOGGER.error("Error during searching notification: " + expectedTitle, e);
             LOGGER.info("Using adb to expand Status bar. ");
             expandStatusBar();
 
@@ -936,6 +936,7 @@ public class AndroidService implements IDriverPool, IAndroidUtils {
      * @param timeZone String
      * @param settingsTZ String
      * @param timeFormat TimeFormat
+     * @param gmtStamp String
      */
     private void setDeviceTimeZoneBySetting(String timeZone, String settingsTZ, TimeFormat timeFormat, String gmtStamp) {
 
@@ -1153,7 +1154,7 @@ public class AndroidService implements IDriverPool, IAndroidUtils {
             LOGGER.info("Output date: " + result);
 
         } catch (Exception e) {
-            LOGGER.error(e.getMessage(), e);
+            LOGGER.error("Error while parsing output date!", e);
         }
         return result;
     }
@@ -1170,7 +1171,7 @@ public class AndroidService implements IDriverPool, IAndroidUtils {
             SimpleDateFormat outputDateFormat = new SimpleDateFormat("yyyyMMdd.HHmmss");
             res = outputDateFormat.format(inputDate);
         } catch (Exception e) {
-            LOGGER.error(e.getMessage(), e);
+            LOGGER.error("Error while converting date into String!", e);
         }
         LOGGER.info("Output date in expected format: " + res);
         return res;

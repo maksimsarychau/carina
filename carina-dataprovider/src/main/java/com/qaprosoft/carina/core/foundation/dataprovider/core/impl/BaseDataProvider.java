@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2013-2020 QaProSoft (http://www.qaprosoft.com).
+ * Copyright 2020-2022 Zebrunner Inc (https://www.zebrunner.com).
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,9 +37,7 @@ public abstract class BaseDataProvider {
 
     protected Map<String, String> testMethodOwnerArgsMap = Collections.synchronizedMap(new HashMap<>());
 
-    protected Map<String, String> jiraArgsMap = Collections.synchronizedMap(new HashMap<>());
     protected Map<String, String> testRailsArgsMap = Collections.synchronizedMap(new HashMap<>());
-    protected Map<String, String> bugArgsMap = Collections.synchronizedMap(new HashMap<>());
 
     protected List<String> argsList;
     protected List<String> staticArgsList;
@@ -61,16 +59,8 @@ public abstract class BaseDataProvider {
         return testMethodOwnerArgsMap;
     }
 
-    public Map<String, String> getJiraArgsMap() {
-        return jiraArgsMap;
-    }
-
     public Map<String, String> getTestRailsArgsMap() {
         return testRailsArgsMap;
-    }
-
-    public Map<String, String> getBugArgsMap() {
-        return bugArgsMap;
     }
 
     public List<String> getDoNotRunRowsIDs() {

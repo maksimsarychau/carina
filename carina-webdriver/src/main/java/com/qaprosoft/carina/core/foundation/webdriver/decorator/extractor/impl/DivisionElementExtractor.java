@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2013-2020 QaProSoft (http://www.qaprosoft.com).
+ * Copyright 2020-2022 Zebrunner Inc (https://www.zebrunner.com).
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,11 +70,11 @@ public class DivisionElementExtractor extends AbstractElementExtractor implement
      * Method to check boundary elements since there is a chance that there are
      * some elements in the same 'y' range
      * 
-     * @param elements
-     * @param x
-     * @param y
-     * @param index
-     * @return
+     * @param elements List&lt;WebElement&gt;
+     * @param x int
+     * @param y int
+     * @param index int
+     * @return List&lt;WebElement&gt;
      */
     private List<WebElement> checkBoundaryElements(List<WebElement> elements, int x, int y, int index) {
         LOGGER.debug(String.format("Index: %d.", index));

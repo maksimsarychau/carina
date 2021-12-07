@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2013-2020 QaProSoft (http://www.qaprosoft.com).
+ * Copyright 2020-2022 Zebrunner Inc (https://www.zebrunner.com).
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,12 +37,10 @@ import org.openqa.selenium.support.pagefactory.internal.LocatingElementHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.qaprosoft.carina.core.foundation.webdriver.locator.ExtendedElementLocator;
-import com.qaprosoft.carina.core.foundation.webdriver.locator.ExtendedElementLocatorFactory;
 import com.qaprosoft.carina.core.foundation.webdriver.locator.ExtendedFindBy;
 import com.qaprosoft.carina.core.foundation.webdriver.locator.LocalizedAnnotations;
 import com.qaprosoft.carina.core.foundation.webdriver.locator.internal.AbstractUIObjectListHandler;
-import com.qaprosoft.carina.core.foundation.webdriver.locator.internal.LocatingElementListHandler;
+import com.qaprosoft.carina.core.foundation.webdriver.locator.internal.LocatingListHandler;
 import com.qaprosoft.carina.core.gui.AbstractUIObject;
 
 public class ExtendedFieldDecorator implements FieldDecorator {
@@ -76,15 +74,12 @@ public class ExtendedFieldDecorator implements FieldDecorator {
         try {
             locator = factory.createLocator(field);
         } catch (Exception e) {
-            LOGGER.error(e.getMessage(), e);
+            LOGGER.error("Error while creating locator!", e);
             return null;
         }
         if (locator == null) {
             return null;
         }
-		if (((ExtendedElementLocatorFactory) factory).isRootElementUsed()) {
-			((ExtendedElementLocator) locator).setShouldCache(false);
-		}
 
         if (ExtendedWebElement.class.isAssignableFrom(field.getType())) {
             return proxyForLocator(loader, field, locator);
@@ -137,7 +132,6 @@ public class ExtendedFieldDecorator implements FieldDecorator {
     @SuppressWarnings("unchecked")
     protected <T extends AbstractUIObject> T proxyForAbstractUIObject(ClassLoader loader, Field field,
             ElementLocator locator) {
-    	((ExtendedElementLocator) locator).setShouldCache(false);
         InvocationHandler handler = new LocatingElementHandler(locator);
         WebElement proxy = (WebElement) Proxy.newProxyInstance(loader, new Class[] { WebElement.class, WrapsElement.class, Locatable.class },
                 handler);
@@ -147,15 +141,10 @@ public class ExtendedFieldDecorator implements FieldDecorator {
             uiObject = (T) clazz.getConstructor(WebDriver.class, SearchContext.class).newInstance(
                     webDriver, proxy);
         } catch (NoSuchMethodException e) {
-            LOGGER.error("Implement appropriate AbstractUIObject constructor for auto-initialization: "
-                    + e.getMessage());
             throw new RuntimeException(
-                    "Implement appropriate AbstractUIObject constructor for auto-initialization: "
-                            + e.getMessage(),
-                    e);
+                    "Implement appropriate AbstractUIObject constructor for auto-initialization!", e);
         } catch (Exception e) {
-            LOGGER.error("Error creating UIObject: " + e.getMessage());
-            throw new RuntimeException("Error creating UIObject: " + e.getMessage(), e);
+            throw new RuntimeException("Error creating UIObject!", e);
         }
         uiObject.setName(field.getName());
         uiObject.setRootElement(proxy);
@@ -165,7 +154,7 @@ public class ExtendedFieldDecorator implements FieldDecorator {
 
     @SuppressWarnings("unchecked")
     protected List<ExtendedWebElement> proxyForListLocator(ClassLoader loader, Field field, ElementLocator locator) {
-        InvocationHandler handler = new LocatingElementListHandler(webDriver, locator, field.getName(), new LocalizedAnnotations(field).buildBy());
+        InvocationHandler handler = new LocatingListHandler(loader, webDriver, locator, field);
         List<ExtendedWebElement> proxies = (List<ExtendedWebElement>) Proxy.newProxyInstance(loader, new Class[] { List.class }, handler);
 
         return proxies;
@@ -174,7 +163,6 @@ public class ExtendedFieldDecorator implements FieldDecorator {
     @SuppressWarnings("unchecked")
     protected <T extends AbstractUIObject> List<T> proxyForListUIObjects(ClassLoader loader, Field field,
             ElementLocator locator) {
-    	((ExtendedElementLocator) locator).setShouldCache(false);
         InvocationHandler handler = new AbstractUIObjectListHandler<T>((Class<?>) getListType(field), webDriver,
                 locator, field.getName());
         List<T> proxies = (List<T>) Proxy.newProxyInstance(loader, new Class[] { List.class }, handler);

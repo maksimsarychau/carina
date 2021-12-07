@@ -1,6 +1,22 @@
+/*******************************************************************************
+ * Copyright 2020-2022 Zebrunner Inc (https://www.zebrunner.com).
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *******************************************************************************/
 package com.qaprosoft.carina.core.foundation.filter.impl;
 
 import java.lang.invoke.MethodHandles;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -15,11 +31,12 @@ public class TagFilter implements IFilter {
     private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
     @Override
-    public boolean isPerform(ITestNGMethod testMethod, List<String> expectedData) {
+    public boolean isPerform(ITestNGMethod testMethod, List<String> rules) {
         String tagName;
         String tagValue;
 
         if (testMethod != null) {
+            //if test was described only by one TagFilter
             if (testMethod.getConstructorOrMethod().getMethod().isAnnotationPresent(TestTag.class)) {
                 TestTag methodAnnotation = testMethod.getConstructorOrMethod().getMethod().getAnnotation(TestTag.class);
 
@@ -27,26 +44,31 @@ public class TagFilter implements IFilter {
                     tagName = methodAnnotation.name();
                     tagValue = methodAnnotation.value();
                     String tag = tagName + "=" + tagValue;
-                    LOGGER.info(String.format("Test: [%s]. Tag: [%s]. Expected tag: [%s]", testMethod.getMethodName(), tag, expectedData.toString()));
-                    return expectedData.parallelStream().anyMatch(d -> d.equalsIgnoreCase(tag));
+                    LOGGER.info(String.format("Test: [%s]. Tag: [%s]. Expected tag: [%s]", testMethod.getMethodName(), tag, rules.toString()));
+                    return ruleCheck(rules, tag);
                 }
             }
 
+            //if test was described by several TagFilters
             if (testMethod.getConstructorOrMethod().getMethod().isAnnotationPresent(TestTag.List.class)) {
                 TestTag.List methodAnnotation = testMethod.getConstructorOrMethod().getMethod().getAnnotation(TestTag.List.class);
-                for (TestTag tagLocal : methodAnnotation.value()) {
-                    if (tagLocal != null) {
-                        tagName = tagLocal.name();
-                        tagValue = tagLocal.value();
-                        String tag = tagName + "=" + tagValue;
-                        LOGGER.info(
-                                String.format("Test: [%s]. Tag: [%s]. Expected tag: [%s]", testMethod.getMethodName(), tag, expectedData.toString()));
-                        return expectedData.parallelStream().anyMatch(d -> d.equalsIgnoreCase(tag));
+                if (methodAnnotation != null) {
+                    List<String> tags = new ArrayList<String>();
+                    for (TestTag tag : methodAnnotation.value()) {
+                        tagName = tag.name();
+                        tagValue = tag.value();
+                        String fullTag = tagName + "=" + tagValue;
+                        tags.add(fullTag.toLowerCase());
                     }
+                    LOGGER.info(
+                            String.format("Test: [%s]. Tag: [%s]. Expected tag: [%s]", testMethod.getMethodName(), tags, rules.toString()));
+                    return ruleCheck(rules, tags);
                 }
             }
+
+            //if test was not described by TagFilters
+            return ruleCheck(rules);
         }
         return false;
     }
-
 }

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2013-2020 QaProSoft (http://www.qaprosoft.com).
+ * Copyright 2020-2022 Zebrunner Inc (https://www.zebrunner.com).
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -156,7 +156,12 @@ public class DriverListener implements WebDriverEventListener {
         // most suspicious are capture screenshots, generating dumps etc
         if (thr == null
                 || thr.getMessage() == null
-                || thr.getMessage().contains("Method has not yet been implemented")
+                || thr.getMessage().contains("Method has not yet been implemented")                        
+                || thr.getMessage().contains("Expected to read a START_MAP but instead have: END. Last 0 characters read")
+                || thr.getMessage().contains("Unable to determine type from: <. Last 1 characters read")
+                || thr.getMessage().contains("script timeout")
+                || thr.getMessage().contains("javascript error: Cannot read property 'outerHTML' of null")
+                || thr.getMessage().contains("javascript error: Cannot read property 'scrollHeight' of null")
                 || thr.getMessage().contains("Method is not implemented")
                 || thr.getMessage().contains("An element could not be located on the page using the given search parameters")
                 || thr.getMessage().contains("no such element: Unable to locate element")
@@ -182,7 +187,7 @@ public class DriverListener implements WebDriverEventListener {
             throw new RuntimeException(thr);
         }
 
-        // hopefully castDriver below resolve root cause of the recursive onException calls but keep below if to ensure
+        // hopefully castDriver below resolve root cause of the recursive onException calls but keep below to ensure
         if (thr.getStackTrace() != null
                 && (Arrays.toString(thr.getStackTrace())
                         .contains("com.qaprosoft.carina.core.foundation.webdriver.listener.DriverListener.onException")
@@ -208,13 +213,12 @@ public class DriverListener implements WebDriverEventListener {
         } catch (Exception e) {
             if (!e.getMessage().isEmpty()
                     && (e.getMessage().contains("Method has not yet been implemented") || (e.getMessage().contains("Method is not implemented")))) {
-                LOGGER.debug("Unrecognized exception detected in DriverListener->onException! " + e.getMessage(), e);
+                LOGGER.debug("Unrecognized exception detected in DriverListener->onException!", e);
             } else {
-                LOGGER.error("Unrecognized exception detected in DriverListener->onException! " + e.getMessage(), e);
+                LOGGER.error("Unrecognized exception detected in DriverListener->onException!", e);
             }
         } catch (Throwable e) {
-            LOGGER.error("Take a look to the logs above for current thread and add exception into the exclusion for Screenshot.isCaptured(). "
-                    + e.getMessage(), e);
+            LOGGER.error("Take a look to the logs above for current thread and add exception into the exclusion for Screenshot.isCaptured().", e);
         }
 
         LOGGER.debug("DriverListener->onException finished.");
@@ -290,7 +294,7 @@ public class DriverListener implements WebDriverEventListener {
                 Screenshot.captureByRule(driver, comment);
             }
         } catch (Exception e) {
-            LOGGER.debug("Unrecognized failure detected in DriverListener->captureScreenshot: " + e.getMessage(), e);
+            LOGGER.debug("Unrecognized failure detected in DriverListener->captureScreenshot!", e);
         } finally {
             resetMessages();
         }
@@ -340,6 +344,8 @@ public class DriverListener implements WebDriverEventListener {
 
     /**
      * Cast Carina driver to WebDriver removing all extra listeners (try to avoid direct operations via WebDriver as it doesn't support logging etc)
+     *
+     * @param drv WebDriver
      *
      * @return WebDriver
      */

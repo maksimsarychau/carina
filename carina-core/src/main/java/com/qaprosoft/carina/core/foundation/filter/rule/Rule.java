@@ -1,3 +1,18 @@
+/*******************************************************************************
+ * Copyright 2020-2022 Zebrunner Inc (https://www.zebrunner.com).
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *******************************************************************************/
 package com.qaprosoft.carina.core.foundation.filter.rule;
 
 
@@ -15,12 +30,12 @@ public class Rule {
     
     private IFilter testFilter;
 
-    private List<String> ruleValues;
+    private List<String> ruleExpression;
 
-    public Rule(String ruleName, IFilter filter, List<String> ruleValues) {
+    public Rule(String ruleName, IFilter filter, List<String> ruleExpression) {
         this.ruleName = ruleName;
         this.testFilter = filter;
-        this.ruleValues = ruleValues;
+        this.ruleExpression = ruleExpression;
     }
 
     public String getRuleName() {
@@ -31,14 +46,6 @@ public class Rule {
         this.ruleName = ruleName;
     }
 
-    public List<String> getRuleValues() {
-        return ruleValues;
-    }
-
-    public void setRuleValues(List<String> ruleValues) {
-        this.ruleValues = ruleValues;
-    }
-
     public IFilter getTestFilter() {
         return testFilter;
     }
@@ -47,9 +54,17 @@ public class Rule {
         this.testFilter = testFilter;
     }
 
+    public List<String> getRuleExpression() {
+        return ruleExpression;
+    }
+
+    public void setRuleExpression(List<String> ruleExpression) {
+        this.ruleExpression = ruleExpression;
+    }
+
     @Override
     public String toString() {
-        return "Rule [ruleName=" + ruleName + ", testFilter=" + testFilter + ", ruleValues=" + ruleValues + "]";
+        return "Rule [ruleName=" + ruleName + ", testFilter=" + testFilter + ", ruleExpression=" + ruleExpression + "]";
     }
 
 }

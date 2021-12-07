@@ -1,21 +1,6 @@
 #set( $symbol_pound = '#' )
 #set( $symbol_dollar = '$' )
 #set( $symbol_escape = '\' )
-/*
- * Copyright 2013-2020 QAPROSOFT (http://qaprosoft.com/).
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package ${package}.carina.demo;
 
 import static org.testng.Assert.assertEquals;
@@ -23,7 +8,10 @@ import static org.testng.Assert.assertNull;
 
 import org.apache.ibatis.session.SqlSession;
 import org.testng.annotations.Test;
-import com.qaprosoft.carina.core.foundation.AbstractTest;
+
+import com.qaprosoft.carina.core.foundation.IAbstractTest;
+import com.zebrunner.agent.core.annotation.TestLabel;
+
 import ${package}.carina.demo.db.mappers.UserMapper;
 import ${package}.carina.demo.db.mappers.UserPreferenceMapper;
 import ${package}.carina.demo.db.models.User;
@@ -33,10 +21,10 @@ import ${package}.carina.demo.db.models.UserPreference;
 
 /**
  * This sample shows how create DB test.
- *
+ * 
  * @author qpsdemo
  */
-public class DBSampleTest extends AbstractTest {
+public class DBSampleTest implements IAbstractTest {
 
 	private static User USER = new User() {
 		{
@@ -55,6 +43,7 @@ public class DBSampleTest extends AbstractTest {
 	};
 
 	@Test
+	@TestLabel(name = "feature", value = "database")
 	public void createUser() {
 		try (SqlSession session = ConnectionFactory.getSqlSessionFactory().openSession(true)) {
 			UserMapper userMapper = session.getMapper(UserMapper.class);
@@ -64,6 +53,7 @@ public class DBSampleTest extends AbstractTest {
 	}
 
 	@Test(dependsOnMethods = "createUser")
+	@TestLabel(name = "feature", value = "database")
 	public void createUserPreference() {
 		try (SqlSession session = ConnectionFactory.getSqlSessionFactory().openSession(true)) {
 			UserMapper userMapper = session.getMapper(UserMapper.class);
@@ -75,6 +65,7 @@ public class DBSampleTest extends AbstractTest {
 	}
 
 	@Test(dependsOnMethods = "createUserPreference")
+	@TestLabel(name = "feature", value = "database")
 	public void updateUser() {
 		try (SqlSession session = ConnectionFactory.getSqlSessionFactory().openSession(true)) {
 			UserMapper userMapper = session.getMapper(UserMapper.class);
@@ -88,6 +79,7 @@ public class DBSampleTest extends AbstractTest {
 	}
 
 	@Test(dependsOnMethods = "updateUser")
+	@TestLabel(name = "feature", value = "database")
 	public void deleteUser() {
 		try (SqlSession session = ConnectionFactory.getSqlSessionFactory().openSession(true)) {
 			UserMapper userMapper = session.getMapper(UserMapper.class);

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2013-2020 QaProSoft (http://www.qaprosoft.com).
+ * Copyright 2020-2022 Zebrunner Inc (https://www.zebrunner.com).
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,14 +23,14 @@ import org.testng.IRetryAnalyzer;
 import org.testng.ITestResult;
 import org.testng.internal.TestResult;
 
-import com.qaprosoft.carina.core.foundation.jira.Jira;
 import com.qaprosoft.carina.core.foundation.utils.Configuration;
 import com.qaprosoft.carina.core.foundation.utils.Configuration.Parameter;
 
 public class RetryAnalyzer implements IRetryAnalyzer {
     private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+    private static final Integer maxCount = Configuration.getInt(Parameter.RETRY_COUNT);
+
     private Integer runCount = 0;
-    private Integer maxCount = Configuration.getInt(Parameter.RETRY_COUNT);
 
     @Override
     public boolean retry(ITestResult result) {
@@ -42,9 +42,6 @@ public class RetryAnalyzer implements IRetryAnalyzer {
 
         LOGGER.debug("RetryAnalyzer: " + result.getMethod().getRetryAnalyzer(result) + "Method: " + result.getMethod().getMethodName()
                 + "; Incremented retryCount: " + runCount);
-        if (runCount <= maxCount && !Jira.isRetryDisabled(result)) {
-            return true;
-        }
-        return false;
+        return runCount <= maxCount;
     }
 }

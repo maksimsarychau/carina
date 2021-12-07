@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2013-2020 QaProSoft (http://www.qaprosoft.com).
+ * Copyright 2020-2022 Zebrunner Inc (https://www.zebrunner.com).
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -101,10 +101,12 @@ public enum R {
 
                 // init R.CONFIG with default values for required fields
                 if (resource.resourceFile.equals("config.properties")) {
-                    properties.put(Parameter.ENV_ARG_RESOLVER.getKey(), "com.qaprosoft.carina.core.foundation.utils.DefaultEnvArgResolver");
-                    properties.put(Parameter.PROJECT_REPORT_DIRECTORY.getKey(), "./reports");
-                    properties.put(Parameter.MAX_LOG_FILE_SIZE.getKey(), "150");
-                    properties.put(Parameter.MAX_SCREENSHOOT_HISTORY.getKey(), "0");
+                    if (!CONFIG.isInit(Parameter.PROJECT_REPORT_DIRECTORY,properties)) {
+                        properties.put(Parameter.PROJECT_REPORT_DIRECTORY.getKey(), "./reports");
+                    }
+                    if (!CONFIG.isInit(Parameter.MAX_SCREENSHOOT_HISTORY,properties)) {
+                        properties.put(Parameter.MAX_SCREENSHOOT_HISTORY.getKey(), "10");
+                    }
                 }
 
                 if (resource.resourceFile.contains("config.properties")) {
@@ -117,8 +119,18 @@ public enum R {
                         String key = entry.getKey();
                         if (key.toLowerCase().startsWith(prefix)) {
                             String value = entry.getValue();
-                            if (!StringUtils.isEmpty(value)) {
+                            if (!StringUtils.isEmpty(value) && !value.equalsIgnoreCase(SpecialKeywords.NULL)) {
                                 properties.put(key, value);
+                            }
+                        }
+                    }
+                    // delete all empty or null capabilites.* items from properties
+                    for (Map.Entry<Object, Object> entry : properties.entrySet()) {
+                        String key = (String) entry.getKey();
+                        String value = (String) entry.getValue();
+                        if (key.toLowerCase().startsWith(prefix)) {
+                            if (StringUtils.isBlank(value) || value.equalsIgnoreCase(SpecialKeywords.NULL)) {
+                                properties.remove(key, value);
                             }
                         }
                     }
@@ -128,6 +140,11 @@ public enum R {
                 throw new InvalidConfigurationException("Invalid config in '" + resource + "': " + e.getMessage());
             }
         }
+    }
+
+    private boolean isInit(Parameter parameter, Properties properties){
+        String value = (String) properties.get(parameter.getKey());
+        return !(value == null || value.length() == 0 || value.equals("NULL"));
     }
 
     R(String resourceKey) {
@@ -183,7 +200,7 @@ public enum R {
     public String get(String key) {
         String value = getTestProperties().getProperty(key);
         if (value != null) {
-            LOGGER.warn("Overridden '" + key + "=" + value + "' property will be used for current test!");
+            System.out.println("Overridden '" + key + "=" + value + "' property will be used for current test!");
             return value;
         }
         

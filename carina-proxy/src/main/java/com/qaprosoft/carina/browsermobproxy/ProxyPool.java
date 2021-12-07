@@ -1,11 +1,11 @@
 /*******************************************************************************
- * Copyright 2013-2020 QaProSoft (http://www.qaprosoft.com).
+ * Copyright 2020-2022 Zebrunner Inc (https://www.zebrunner.com).
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -247,7 +247,7 @@ public final class ProxyPool {
     
     /**
      * Stop single proxy instance by id
-     * @param threadId
+     * @param threadId long
      */
     private static void stopProxyByThread(long threadId) {
         if (proxies.containsKey(threadId)) {
@@ -338,7 +338,7 @@ public final class ProxyPool {
     /**
      * Method to kill process by port. It is used before start of new proxy instance
      * 
-     * @param port
+     * @param port int
      */
     private static void killProcessByPort(int port) {
         if (port == 0) {
@@ -364,8 +364,7 @@ public final class ProxyPool {
             LOGGER.debug("proxy process after kill and 2 sec pause: " + StringUtils.join(output, ""));
             
         } catch (Exception e) {
-            LOGGER.error("Unable to kill process by lsof utility: " + e.getMessage());
-            LOGGER.debug(e.getMessage(), e);
+            LOGGER.error("Unable to kill process by lsof utility!", e);
         }
     }
 }

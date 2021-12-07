@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2013-2020 QaProSoft (http://www.qaprosoft.com).
+ * Copyright 2020-2022 Zebrunner Inc (https://www.zebrunner.com).
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  *******************************************************************************/
 package com.qaprosoft.carina.core.foundation.webdriver.core.factory;
 
+import java.lang.invoke.MethodHandles;
+
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.openqa.selenium.Capabilities;
@@ -22,6 +24,8 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.support.events.EventFiringWebDriver;
 import org.openqa.selenium.support.events.WebDriverEventListener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.qaprosoft.carina.core.foundation.utils.R;
 
@@ -31,7 +35,7 @@ import com.qaprosoft.carina.core.foundation.utils.R;
  * @author Alex Khursevich (alex@qaprosoft.com)
  */
 public abstract class AbstractFactory {
-    
+    private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
     /**
      * Creates new instance of {@link WebDriver} according to specified {@link DesiredCapabilities}.
      * 

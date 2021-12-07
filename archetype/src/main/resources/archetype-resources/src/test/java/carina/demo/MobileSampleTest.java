@@ -3,13 +3,15 @@
 #set( $symbol_escape = '\' )
 package ${package}.carina.demo;
 
+import com.zebrunner.agent.core.annotation.TestLabel;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import com.qaprosoft.carina.core.foundation.AbstractTest;
+import com.qaprosoft.carina.core.foundation.IAbstractTest;
 import com.qaprosoft.carina.core.foundation.utils.mobile.IMobileUtils;
 import com.qaprosoft.carina.core.foundation.utils.ownership.MethodOwner;
+
 import ${package}.carina.demo.mobile.gui.pages.common.CarinaDescriptionPageBase;
 import ${package}.carina.demo.mobile.gui.pages.common.ContactUsPageBase;
 import ${package}.carina.demo.mobile.gui.pages.common.LoginPageBase;
@@ -20,10 +22,11 @@ import ${package}.carina.demo.utils.MobileContextUtils;
 import ${package}.carina.demo.utils.MobileContextUtils.View;
 
 
-public class MobileSampleTest extends AbstractTest implements IMobileUtils {
+public class MobileSampleTest implements IAbstractTest, IMobileUtils {
 
-    @Test(description = "JIRA${symbol_pound}DEMO-0011")
+    @Test()
     @MethodOwner(owner = "qpsdemo")
+    @TestLabel(name = "feature", value = {"mobile", "regression"})
     public void testLoginUser() {
         String username = "Test user";
         String password = RandomStringUtils.randomAlphabetic(10);
@@ -39,8 +42,9 @@ public class MobileSampleTest extends AbstractTest implements IMobileUtils {
         Assert.assertTrue(carinaDescriptionPage.isPageOpened(), "Carina description page isn't opened");
     }
 
-	@Test(description = "JIRA${symbol_pound}DEMO-0011")
+	@Test()
     @MethodOwner(owner = "qpsdemo")
+    @TestLabel(name = "feature", value = {"mobile", "regression"})
     public void testWebView() {
         WelcomePageBase welcomePage = initPage(getDriver(), WelcomePageBase.class);
         LoginPageBase loginPage = welcomePage.clickNextBtn();
@@ -52,14 +56,16 @@ public class MobileSampleTest extends AbstractTest implements IMobileUtils {
         contactUsPage.typeName("John Doe");
         contactUsPage.typeEmail("some@email.com");
         contactUsPage.typeQuestion("This is a message");
+        //TODO: [VD] move page driver related action outside from test class!
         hideKeyboard();
         contactUsPage.submit();
-        Assert.assertTrue(contactUsPage.isSuccessMessagePresent() || contactUsPage.isRecaptchaPresent(),
-            "message was not sent or captcha was not displayed");
+        Assert.assertTrue(contactUsPage.isErrorMessagePresent() || contactUsPage.isRecaptchaPresent(),
+                "Error message or captcha was not displayed");
     }
 
-    @Test(description = "JIRA${symbol_pound}DEMO-0011")
+    @Test()
     @MethodOwner(owner = "qpsdemo")
+    @TestLabel(name = "feature", value = {"mobile", "acceptance"})
     public void testUIElements() {
         WelcomePageBase welcomePage = initPage(getDriver(), WelcomePageBase.class);
         LoginPageBase loginPage = welcomePage.clickNextBtn();

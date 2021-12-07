@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2013-2020 QaProSoft (http://www.qaprosoft.com).
+ * Copyright 2020-2022 Zebrunner Inc (https://www.zebrunner.com).
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,7 +54,7 @@ import com.qaprosoft.carina.core.foundation.utils.Configuration.Parameter;
 public class AppCenterManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
     
-    protected RestTemplate restTemplate;
+    protected RestTemplate restTemplate = RestTemplateBuilder.newInstance().withDisabledSslChecking().withSpecificJsonMessageConverter().build();
 
     private String ownerName;
     private String versionLong;
@@ -75,9 +75,18 @@ public class AppCenterManager {
         return instance;
     }
 
-    private void disableRestTemplateSsl() {
-        restTemplate = RestTemplateBuilder.newInstance().withDisabledSslChecking().withSpecificJsonMessageConverter().build();
-    }
+    /**
+    *
+    * @param appName takes in the AppCenter Name to look for.
+    * @param platformName takes in the platform we wish to download for.
+    * @param buildType takes in the particular build to download (i.e. Prod.AdHoc, QA.Debug, Prod-Release, QA-Internal etc...)
+    * @param version takes in either "latest" to take the first build that matches the criteria or allows to consume a version to download that
+    *            build.
+    * @return download url for build artifact.
+    */
+   public String getDownloadUrl(String appName, String platformName, String buildType, String version) {
+       return scanAppForBuild(getAppId(appName, platformName), buildType, version);
+   }    
 
     /**
      *
@@ -90,10 +99,9 @@ public class AppCenterManager {
      * @return file to the downloaded build artifact
      */
     public File getBuild(String folder, String appName, String platformName, String buildType, String version) {
-        disableRestTemplateSsl();
+        String buildToDownload = getDownloadUrl(appName, platformName, buildType, version);
 
-        String buildToDownload = scanAppForBuild(getAppId(appName, platformName), buildType, version);
-
+        //TODO: wrap below code into the public download method
         String fileName = folder + "/" + createFileName(appName, buildType, platformName);
         File fileToLocate = null;
 
@@ -110,7 +118,7 @@ public class AppCenterManager {
                 }
             }
         } catch (Exception ex) {
-            LOGGER.error(String.format("Error Attempting to Look for Existing File: %s", ex.getMessage()), ex);
+            LOGGER.error("Error Attempting to Look for Existing File!", ex);
         }
 
         if (fileToLocate == null) {
@@ -125,7 +133,7 @@ public class AppCenterManager {
                 }
                 LOGGER.debug(String.format("AppCenter Build (%s) was retrieved", fileName));
             } catch (Exception ex) {
-                LOGGER.error(String.format("Error Thrown When Attempting to Transfer AppCenter Build (%s)", ex.getMessage()), ex);
+                LOGGER.error("Error Thrown When Attempting to Transfer AppCenter Build!", ex);
             }
         } else {
             LOGGER.info("Preparing to use local version of AppCenter Build...");
@@ -153,7 +161,7 @@ public class AppCenterManager {
             return false;
         } catch (ClosedByInterruptException ie1) {
             LOGGER.info("Retrying....");
-            LOGGER.error("Getting Error: " + ie1.getMessage(), ie1);
+            LOGGER.error("Getting Error!", ie1);
             return true;
         }
     }
@@ -162,10 +170,9 @@ public class AppCenterManager {
      *
      * @param appName takes in the AppCenter Name to look for.
      * @param platformName takes in the platform we wish to download for.
-     * @return
+     * @return Map&lt;String, String&gt;
      */
     private Map<String, String> getAppId(String appName, String platformName) {
-
         Map<String, String> appMap = new HashMap<>();
 
         RequestEntity<String> retrieveApps = buildRequestEntity(
@@ -202,10 +209,9 @@ public class AppCenterManager {
      * @param buildType takes in the particular build to download (i.e. Prod.AdHoc, QA.Debug, Prod-Release, QA-Internal etc...)
      * @param version takes in either "latest" to take the first build that matches the criteria or allows to consume a version to download that
      *            build.
-     * @return
+     * @return String
      */
     private String scanAppForBuild(Map<String, String> apps, String buildType, String version) {
-
         for (String currentApp : apps.keySet()) {
             LOGGER.info("Scanning App " + currentApp);
             MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();

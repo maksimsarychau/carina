@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2013-2020 QaProSoft (http://www.qaprosoft.com).
+ * Copyright 2020-2022 Zebrunner Inc (https://www.zebrunner.com).
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,7 +50,7 @@ public class Resources {
                 try {
                     collectURL(f, s, file.toURI().toURL());
                 } catch (MalformedURLException e) {
-                    LOGGER.debug(e.getMessage(), e);
+                    LOGGER.debug("Error while collecting urls!", e);
                 }
             }
         }
@@ -81,12 +81,12 @@ public class Resources {
                 try {
                     iterateEntry(new File(url.toURI()), filter, collectedURLs);
                 } catch (URISyntaxException e) {
-                    LOGGER.debug(e.getMessage(), e);
+                    LOGGER.debug("Error during creating URI from url!", e);
                 }
             }
             return collectedURLs;
         } catch (IOException e) {
-            LOGGER.debug(e.getMessage(), e);
+            LOGGER.debug("Error on creating URLClassLoader!", e);
         }
         return collectedURLs;
     }
@@ -100,7 +100,7 @@ public class Resources {
             iterateEntry(new File(src.getLocation().toURI()), filter,
                     collectedURLs);
         } catch (URISyntaxException e) {
-            LOGGER.debug(e.getMessage(), e);
+            LOGGER.debug("Error during creating URI from url!", e);
         }
         return collectedURLs;
     }

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2013-2020 QaProSoft (http://www.qaprosoft.com).
+ * Copyright 2020-2022 Zebrunner Inc (https://www.zebrunner.com).
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,8 +73,9 @@ public class AbstractUIObjectListHandler<T extends AbstractUIObject> implements 
 		// Pros: super fast regression issue which block UI execution
 		// Cons: there is no way to manage timeouts in this places
 
-    	waitUntil(ExpectedConditions.and(ExpectedConditions.presenceOfElementLocated(locatorBy),
-    			ExpectedConditions.visibilityOfElementLocated(locatorBy)));
+        // #1458: AbstractUIObjectListHandler waitUntil pause
+//    	waitUntil(ExpectedConditions.and(ExpectedConditions.presenceOfElementLocated(locatorBy),
+//    			ExpectedConditions.visibilityOfElementLocated(locatorBy)));
 
     	List<WebElement> elements = null;
     	try {
@@ -144,7 +145,6 @@ public class AbstractUIObjectListHandler<T extends AbstractUIObject> implements 
      * Wait until any condition happens.
      *
      * @param condition - ExpectedCondition.
-     * @param timeout - timeout.
      * @return true if condition happen.
      */
 	@SuppressWarnings("unchecked")

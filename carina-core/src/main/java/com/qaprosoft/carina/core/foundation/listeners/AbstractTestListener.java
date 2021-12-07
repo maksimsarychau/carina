@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2013-2020 QaProSoft (http://www.qaprosoft.com).
+ * Copyright 2020-2022 Zebrunner Inc (https://www.zebrunner.com).
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,6 @@ import org.testng.internal.annotations.DisabledRetryAnalyzer;
 
 import com.qaprosoft.carina.core.foundation.commons.SpecialKeywords;
 import com.qaprosoft.carina.core.foundation.dataprovider.parser.DSBean;
-import com.qaprosoft.carina.core.foundation.jira.Jira;
 import com.qaprosoft.carina.core.foundation.report.ReportContext;
 import com.qaprosoft.carina.core.foundation.report.TestResultItem;
 import com.qaprosoft.carina.core.foundation.report.TestResultType;
@@ -52,16 +51,13 @@ public class AbstractTestListener extends TestListenerAdapter implements IDriver
 
     private void startItem(ITestResult result, Messager messager) {
         String test = TestNameResolverRegistry.get().resolve(result);
-        String deviceName = getDeviceName();
-        messager.info(deviceName, test, DateUtils.now());
+        messager.info(test, DateUtils.now());
     }
 
     private void passItem(ITestResult result, Messager messager) {
         String test = TestNameResolverRegistry.get().resolve(result);
 
-        String deviceName = getDeviceName();
-
-        messager.info(deviceName, test, DateUtils.now());
+        messager.info(test, DateUtils.now());
 
         EmailReportItemCollector
                 .push(createTestResult(result, TestResultType.PASS, null, result.getMethod().getDescription()));
@@ -73,11 +69,10 @@ public class AbstractTestListener extends TestListenerAdapter implements IDriver
         String test = TestNameResolverRegistry.get().resolve(result);
 
         String errorMessage = getFailureReason(result);
-        String deviceName = getDeviceName();
 
         // TODO: remove hard-coded text
         if (!errorMessage.contains("All tests were skipped! Analyze logs to determine possible configuration issues.")) {
-            messager.error(deviceName, test, DateUtils.now(), errorMessage);
+            messager.error(test, DateUtils.now(), errorMessage);
             if (!R.EMAIL.getBoolean("fail_full_stacktrace_in_report") && result.getThrowable() != null
                     && result.getThrowable().getMessage() != null
                     && !StringUtils.isEmpty(result.getThrowable().getMessage())) {
@@ -93,22 +88,7 @@ public class AbstractTestListener extends TestListenerAdapter implements IDriver
         return errorMessage;
     }
 
-    private String getDeviceName() {
-        String deviceName = IDriverPool.getDefaultDevice().getName();
-        String deviceUdid = IDriverPool.getDefaultDevice().getUdid();
-
-        if (!deviceName.isEmpty() && !deviceUdid.isEmpty()) {
-            deviceName = deviceName + " - " + deviceUdid;
-        }
-
-        return deviceName;
-    }
-
     private void afterTest(ITestResult result) {
-        // do not publish log/demo anymore
-        //Artifacts.add("Logs", ReportContext.getTestLogLink(test));
-        //Artifacts.add("Demo", ReportContext.getTestScreenshotsLink(test));
-        
         ReportContext.generateTestReport();
         ReportContext.emptyTestDirData();
     }
@@ -143,14 +123,15 @@ public class AbstractTestListener extends TestListenerAdapter implements IDriver
         String uuid = StringGenerator.generateNumeric(8);
         ParameterGenerator.setUUID(uuid);
 
-        ReportContext.getBaseDir(); // create directory for logging as soon as possible
-
         super.onStart(context);
     }
 
     @Override
     public void onTestStart(ITestResult result) {
+        // create new folder for test report
+        ReportContext.createTestDir();
         LOGGER.debug("AbstractTestListener->onTestStart");
+        LOGGER.debug("Test Directory: {}", ReportContext.getTestDir().getName());
         IRetryAnalyzer curRetryAnalyzer = getRetryAnalyzer(result);
         
         if (curRetryAnalyzer == null
@@ -232,7 +213,8 @@ public class AbstractTestListener extends TestListenerAdapter implements IDriver
     @Override
     public void onTestSkipped(ITestResult result) {
         LOGGER.debug("AbstractTestListener->onTestSkipped");
-        
+        failItem(result, Messager.TEST_SKIPPED);
+        //there is no need to afterTest as it is retry failure and we wanna to proceed with the same test.log etc
         super.onTestSkipped(result);
     }
 
@@ -250,11 +232,7 @@ public class AbstractTestListener extends TestListenerAdapter implements IDriver
         String linkToScreenshots = ReportContext.getTestScreenshotsLink();
 
         String test = StringEscapeUtils.escapeHtml4(TestNameResolverRegistry.get().resolve(result));
-        TestResultItem testResultItem = new TestResultItem(group, test, resultType, linkToScreenshots, linkToLog, failReason);
-        testResultItem.setDescription(description);
-        // AUTO-1081 eTAF report does not show linked Jira tickets if test PASSED
-        // jira tickets should be used for tracking tasks. application issues will be tracked by planned zafira feature
-        testResultItem.setJiraTickets(Jira.getTickets(result));
+        TestResultItem testResultItem = new TestResultItem(group, test, description, resultType, linkToScreenshots, linkToLog, failReason);
         return testResultItem;
     }
 

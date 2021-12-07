@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2013-2020 QaProSoft (http://www.qaprosoft.com).
+ * Copyright 2020-2022 Zebrunner Inc (https://www.zebrunner.com).
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,7 +50,7 @@ public class XmlFormatter {
 
             return writer.writeToString(document);
         } catch (Exception e) {
-            LOGGER.error(e.getMessage(), e);
+            LOGGER.error("Error during adjusting xml!", e);
         }
         return xml; // Return the same string if error take place
     }

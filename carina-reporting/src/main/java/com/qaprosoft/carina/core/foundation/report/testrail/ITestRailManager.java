@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2013-2020 QaProSoft (http://www.qaprosoft.com).
+ * Copyright 2020-2022 Zebrunner Inc (https://www.zebrunner.com).
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.testng.ITestContext;
+import org.testng.ISuite;
 import org.testng.ITestResult;
 
 import com.qaprosoft.carina.core.foundation.commons.SpecialKeywords;
@@ -33,14 +33,13 @@ public interface ITestRailManager extends ITestCases {
     default Set<String> getTestRailCasesUuid(ITestResult result) {
         Set<String> testCases = new HashSet<String>();
 
-        int projectID = getTestRailProjectId(result.getTestContext());
-        int suiteID = getTestRailSuiteId(result.getTestContext());
-        
-        if (projectID == -1 || suiteID == -1) {
+        int suiteID = getTestRailSuiteIdFromSuite(result.getTestContext().getSuite());
+
+        if (suiteID == -1) {
             // no sense to return something as integration data not provided
             return testCases;
         }
-        
+
         // Get a handle to the class and method
         Class<?> testClass;
         try {
@@ -63,12 +62,17 @@ public interface ITestRailManager extends ITestCases {
                     TestRailCases methodAnnotation = testMethod.getAnnotation(TestRailCases.class);
                     String platform = methodAnnotation.platform();
                     String locale = methodAnnotation.locale();
-                    if (isValidPlatform(platform) && isValidLocale(locale)) {
+                    String expectedSuiteId = methodAnnotation.suiteId();
+                    if (isValidPlatform(platform) && isValidLocale(locale) && isValidSuite(suiteID, expectedSuiteId)) {
                         String[] testCaseList = methodAnnotation.testCasesId().split(",");
                         for (String tcase : testCaseList) {
-                            String uuid = tcase;
-                            testCases.add(projectID + "-" + suiteID + "-" + uuid);
-                            TESTRAIL_LOGGER.debug("TestRail test case uuid '" + uuid + "' is registered.");
+                            tcase = tcase.trim();
+                            if (!tcase.isEmpty()) {
+                                testCases.add(tcase);
+                                TESTRAIL_LOGGER.debug("TestRail test case uuid '" + tcase + "' is registered.");
+                            } else {
+                                TESTRAIL_LOGGER.error("TestRail test case uuid was not registered because of an empty value");
+                            }
                         }
 
                     }
@@ -79,51 +83,66 @@ public interface ITestRailManager extends ITestCases {
 
                         String platform = tcLocal.platform();
                         String locale = tcLocal.locale();
-                        if (isValidPlatform(platform) && isValidLocale(locale)) {
+                        String expectedSuiteId = tcLocal.suiteId();
+                        if (isValidPlatform(platform) && isValidLocale(locale) && isValidSuite(suiteID, expectedSuiteId)) {
                             String[] testCaseList = tcLocal.testCasesId().split(",");
                             for (String tcase : testCaseList) {
-                                String uuid = tcase;
-                                testCases.add(projectID + "-" + suiteID + "-" + uuid);
-                                TESTRAIL_LOGGER.debug("TestRail test case uuid '" + uuid + "' is registered.");
+                                tcase = tcase.trim();
+                                if (!tcase.isEmpty()) {
+                                    testCases.add(tcase);
+                                    TESTRAIL_LOGGER.debug("TestRail test case uuid '" + tcase + "' is registered.");
+                                } else {
+                                    TESTRAIL_LOGGER.error("TestRail test case uuid was not registered because of an empty value");
+                                }
                             }
                         }
                     }
                 }
             }
         } catch (ClassNotFoundException e) {
-            TESTRAIL_LOGGER.error(e.getMessage(), e);
+            TESTRAIL_LOGGER.error("Can't find test class!", e);
         }
 
         // append cases id values from ITestCases map (custom TestNG provider)
-        for (String entry: getCases()) {
-            testCases.add(projectID + "-" + suiteID + "-" + entry);
+        for (String entry : getCases()) {
+            entry = entry.trim();
+            if (!entry.isEmpty()) {
+                testCases.add(entry.trim());
+            }
         }
         clearCases();
 
         return testCases;
     }
 
-  private int getTestRailProjectId(ITestContext context) {
-        if (context.getSuite().getParameter(SpecialKeywords.TESTRAIL_PROJECT_ID) != null) {
-            return Integer.valueOf(context.getSuite().getParameter(SpecialKeywords.TESTRAIL_PROJECT_ID).trim());
-        } else if (context.getSuite().getAttribute(SpecialKeywords.TESTRAIL_PROJECT_ID) != null){
-            //use-case to support unit tests
-            return Integer.valueOf(context.getSuite().getAttribute(SpecialKeywords.TESTRAIL_PROJECT_ID).toString());
-        } else {
-            return -1;
-        }
-            
+    @Deprecated
+    default String getTestRailProjectId(ISuite suite) {
+        return "";
     }
 
-  private int getTestRailSuiteId(ITestContext context) {
-        if (context.getSuite().getParameter(SpecialKeywords.TESTRAIL_SUITE_ID) != null) {
-            return Integer.valueOf(context.getSuite().getParameter(SpecialKeywords.TESTRAIL_SUITE_ID).trim());
-        } else if (context.getSuite().getAttribute(SpecialKeywords.TESTRAIL_SUITE_ID) != null) {
+    default String getTestRailSuiteId(ISuite suite) {
+        int suiteID = getTestRailSuiteIdFromSuite(suite);
+
+        if (suiteID == -1) {
+            return "";
+        } else {
+            return String.valueOf(suiteID);
+        }
+    }
+
+    private int getTestRailSuiteIdFromSuite(ISuite suite) {
+        if (suite.getParameter(SpecialKeywords.TESTRAIL_SUITE_ID) != null) {
+            return Integer.parseInt(suite.getParameter(SpecialKeywords.TESTRAIL_SUITE_ID).trim());
+        } else if (suite.getAttribute(SpecialKeywords.TESTRAIL_SUITE_ID) != null) {
             //use-case to support unit tests
-            return Integer.valueOf(context.getSuite().getAttribute(SpecialKeywords.TESTRAIL_SUITE_ID).toString());
+            return Integer.parseInt(suite.getAttribute(SpecialKeywords.TESTRAIL_SUITE_ID).toString().trim());
         } else {
             return -1;
         }
     }
     
+    private boolean isValidSuite(int actualSuiteId, String expectedSuiteId) {
+        return expectedSuiteId.isEmpty() || expectedSuiteId.equalsIgnoreCase(String.valueOf(actualSuiteId));
+    }
+
 }
