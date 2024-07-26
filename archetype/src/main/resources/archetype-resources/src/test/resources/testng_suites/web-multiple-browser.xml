@@ -8,10 +8,9 @@
     <parameter name="jenkinsJobName" value="Web-Multiple-Browser-Demo-Test"/>
     <parameter name="jenkinsJobType" value="web"/>
     <parameter name="jenkinsEnvironments" value="DEMO"/>
-    <parameter name="jenkinsEmail" value="demo@qaprosoft.com"/>
+    <parameter name="jenkinsEmail" value="demo@zebrunner.com"/>
 
     <parameter name="jenkinsRegressionPipeline" value="web_regression"/>
-    <parameter name="jenkinsPipelineEnvironments" value="DEMO"/>
     <parameter name="jenkinsAutoScreenshot" value="true"/>
 
     <test name="Multiple Browser Test">

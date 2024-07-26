@@ -8,15 +8,14 @@
 	<parameter name="provider" value="mcloud"/>
 	<parameter name="jenkinsJobName" value="Mobile-Android-Demo-Test" />
 	<parameter name="jenkinsJobType" value="android"/>
-	<parameter name="jenkinsEmail" value="demo@qaprosoft.com" />
+	<parameter name="jenkinsEmail" value="demo@zebrunner.com" />
 	<parameter name="jenkinsEnvironments" value="DEMO" />
 
 	<parameter name="stringParam::capabilities.app::path to carina demo mobile application" value="https://qaprosoft.s3-us-west-2.amazonaws.com/carinademoexample.apk" />
 
 	<parameter name="jenkinsMobileDefaultPool" value="ANY" />
 
- 	<parameter name="jenkinsRegressionPipeline" value="mobile_regression" />
-	<parameter name="jenkinsPipelineEnvironments" value="DEMO" />
+	<parameter name="jenkinsRegressionPipeline" value="mobile_regression" />
 	<parameter name="jenkinsJobExecutionOrder" value="3" />
 	<parameter name="jenkinsJobExecutionMode" value="continue" />
 	<parameter name="jenkinsAutoScreenshot" value="true" />

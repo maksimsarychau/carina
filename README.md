@@ -16,6 +16,51 @@ Carina is a Java-based test automation framework that unites all testing layers:
 
 ![Alt text](https://github.com/zebrunner/carina/raw/master/docs/img/carina_overview.png "Carina Overview")
 
+
+The Carina Framework ecosystem consists of the following modules:
+<table>
+	<tr>
+		<th>Project Name</th>
+		<th>Description</th>
+	</tr>
+	<tr>
+		<td><a href="https://github.com/zebrunner/carina-api">Carina API</a></td>
+		<td>For API testing, based on RestAssured library. <b>Optional</b></td>
+	</tr>
+    <tr>
+		<td><a href="https://github.com/zebrunner/carina-aws-s3">Carina AWS S3</a></td>
+		<td>A set of utilities for working with Amazon S3. <b>Optional</b></td>
+	</tr>
+    <tr>
+		<td><a href="https://github.com/zebrunner/carina-azure">Carina Azure</a></td>
+		<td>A set of utilities for working with Azure. <b>Optional</b></td>
+	</tr>
+    <tr>
+		<td><a href="https://github.com/zebrunner/carina-appcenter">Carina AppCenter</a></td>
+		<td>A set of utilities for working with AppCenter. <b>Optional</b></td>
+	</tr>
+    <tr>
+		<td><a href="https://github.com/zebrunner/carina-dataprovider">Carina DataProvider</a></td>
+		<td>Provides the ability to use xls/csv as data sources. <b>Optional</b></td>
+	</tr>
+    <tr>
+		<td><a href="https://github.com/zebrunner/carina-webdriver">Carina WebDriver</a></td>
+		<td>Contains logic for creating sessions. <b>Part of Carina Core</b></td>
+	</tr>
+    <tr>
+		<td><a href="https://github.com/zebrunner/carina-utils">Carina Utils</a></td>
+		<td>Provides a set of tools for all components of Carina Framework. <b>Part of Carina Core</b></td>
+	</tr>
+    <tr>
+		<td><a href="https://github.com/zebrunner/carina-commons">Carina Commons</a></td>
+		<td>Contains interfaces for pluggable dependencies (e.g. carina-azure). <b>Part of Carina Core</b></td>
+	</tr>
+    <tr>
+		<td><a href="https://github.com/zebrunner/carina-crypto">Carina Crypto</a></td>
+        <td>Contains utilities for encryption/decryption. <b>Part of Carina Core</b></td>
+	</tr>
+</table>
+
 ## Sponsor
 <p align="center">
   <a href="https://zebrunner.com/"><img alt="Zebrunner" src="https://github.com/zebrunner/zebrunner/raw/master/docs/img/zebrunner_intro.png"></a>

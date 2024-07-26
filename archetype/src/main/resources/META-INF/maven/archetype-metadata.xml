@@ -10,7 +10,7 @@
             <defaultValue>CarinaDemo</defaultValue>
         </requiredProperty>
         <requiredProperty key="url">
-            <defaultValue>https://qaprosoft.com</defaultValue>
+            <defaultValue>https://zebrunner.com</defaultValue>
         </requiredProperty>
         <requiredProperty key="demo">
             <defaultValue>true</defaultValue>
@@ -39,6 +39,7 @@
       <directory>src/main/resources</directory>
       <includes>
         <include>**/*.properties</include>
+        <include>**/*.xml</include>
         <include>logback.xml</include>
       </includes>
     </fileSet>
@@ -65,9 +66,15 @@
       <directory>src/test/resources</directory>
       <includes>
         <include>**/*.schema</include>
-        <include>**/*.xlsx</include>
         <include>**/*.json</include>
         <include>**/*.feature</include>
+      </includes>
+    </fileSet>
+    <fileSet encoding="UTF-8">
+      <directory>src/test/resources/data_source</directory>
+      <includes>
+        <include>**/*.xlsx</include>
+        <include>**/*.csv</include>
       </includes>
     </fileSet>
     <fileSet encoding="UTF-8">

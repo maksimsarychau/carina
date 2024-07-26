@@ -1,129 +1,114 @@
-# Proxy usage
-There is a possibility to send all test traffic via proxy including the embedded light-weight BrowserMob proxy server.
-There are several properties available to manage all kinds of proxy usage:
+Selenium provides the ability to set various proxy settings for the browser session.
+This possibility is implemented and supplemented in Carina Framework through the usage of various configurations.
+
+First, the type of proxying is controlled by the configuration parameter
+`proxy_type`. The value of this parameter can be `ZEBRUNNER`, `DIRECT`, `MANUAL`, `PAC`, `AUTODETECT`, 
+`SYSTEM`, `UNSPECIFIED`. Let's consider them in more detail.
+
+### DIRECT proxy mode
+Specifies that the session will not use a proxy.
+
+Set by changing the value of the `proxy_type` parameter in the configuration to `DIRECT`.
+
+An example of using a proxy can be viewed [here](https://github.com/zebrunner/carina-demo/blob/318b5235b3d100c9f9419dcb274f1e4c25700cf0/src/test/java/com/zebrunner/carina/demo/ProxySampleTest.java#L93).
+
+###  PAC proxy mode
+
+A Proxy Auto-Configuration (PAC) file is a JavaScript function that determines whether 
+web browser requests (HTTP, HTTPS, and FTP) go directly to the destination or are 
+forwarded to a web proxy server. More information about the structure of the pac file can be found [here](https://developer.mozilla.org/en-US/docs/Web/HTTP/Proxy_servers_and_tunneling/Proxy_Auto-Configuration_PAC_file).
+
+Set by changing the value of the `proxy_type` parameter in the configuration to `PAC`.
+
+This mode depends on the following configuration parameters:
+
+`proxy_autoconfig_url` - specifies the URL to be used for proxy auto-configuration.
+Expected format is `http://hostname.com:1234/pacfile`. However, the value of this parameter
+may be local path with pac file.
+
+`proxy_pac_local` - specifies, how the value provided in the `proxy_autoconfig_url` parameter.
+If the parameter value is `true` then it is assumed
+that `proxy_autoconfig_url` contains the path to the file on the local machine. It will be sent
+browser to set up a proxy. If the value of the parameter is `false`, then it is assumed that
+that `proxy_autoconfig_url` contains the URL to the pac file.
+
+An example of using a proxy can be viewed [here](https://github.com/zebrunner/carina-demo/blob/318b5235b3d100c9f9419dcb274f1e4c25700cf0/src/test/java/com/zebrunner/carina/demo/ProxySampleTest.java#L112).
+
+###  AUTODETECT proxy mode
+
+Specifies whether to autodetect proxy settings. Presumably with [WPAD](https://en.wikipedia.org/wiki/Web_Proxy_Auto-Discovery_Protocol).
+
+Set by changing the value of the `proxy_type` parameter in the configuration to `AUTODETECT`.
+
+An example of using a proxy can be viewed [here](https://github.com/zebrunner/carina-demo/blob/318b5235b3d100c9f9419dcb274f1e4c25700cf0/src/test/java/com/zebrunner/carina/demo/ProxySampleTest.java#L152).
+
+###  SYSTEM proxy mode
+
+Use system proxy settings. Default Mode on Linux.
+
+Set by changing the value of the `proxy_type` parameter in the configuration to `SYSTEM`.
+
+An example of using a proxy can be viewed [here](https://github.com/zebrunner/carina-demo/blob/318b5235b3d100c9f9419dcb274f1e4c25700cf0/src/test/java/com/zebrunner/carina/demo/ProxySampleTest.java#L171).
+
+###  UNSPECIFIED proxy mode [NOT RECOMMENDED TO USE]
+
+The mode set in the Selenium proxy by default and indicates that they should
+use the following settings (for Windows - DIRECT mode, for linux - SYSTEM).
+
+Set by changing the value of the `proxy_type` parameter in the configuration to `UNSPECIFIED`.
+
+It is not recommended to use, if you want to specify that the proxy object is not added to
+session, then use `UNUSED` mode. Only added because Selenium provides
+the ability to explicitly specify the `UNSPECIFIED` proxy type.
+
+###  MANUAL proxy mode
+
+Proxy mode, in which the host and port of the proxy are explicitly specified.
+
+Set by changing the value of the `proxy_type` parameter in the configuration to `MANUAL`.
+
+Depends on the following configuration parameters:
+
+`proxy_host` - contains a proxy host, for example `127.0.0.1`  
+`proxy_port` - contains a proxy port, for example `8080`  
+`proxy_protocols` - contains a list of protocol types to which should be applied
+the above options. May contain a set of the following values: `http`, `https`, `ftp`, `socks`.
+Values are separated by a comma, such as `http,https,ftp`.  
+`no_proxy` - contains comma-separated addresses to which the proxy should not be applied.
+
+If this mode applies to the entire application, you can use the following setting:
+
+`proxy_set_to_system` - if `true`, then sets proxy values to system properties, i.e.
+the proxy will be applied to all http/https/ftp requests from the application as well (depends on the values listed in `proxy_protocols`).
+However, this approach is not thread-safe and is therefore not recommended for use in all other modes. Disabled by default.
+
+An example of using a proxy can be viewed [here](https://github.com/zebrunner/carina-demo/blob/318b5235b3d100c9f9419dcb274f1e4c25700cf0/src/test/java/com/zebrunner/carina/demo/ProxySampleTest.java#L69).
+
+### ZEBRUNNER proxy mode
+
+Proxy mode, designed to work with [Zebrunner Selenium Grid](https://zebrunner.com/selenium-grid).
+
+Set by changing the value of the `proxy_type` parameter in the configuration to `ZEBRUNNER`.
+
+By simply enabling this type of proxy, incoming/outgoing browser requests will be proxied.
+However, it is also possible to specify additional parameters for the proxy. The class `com.zebrunner.carina.webdriver.proxy.ZebrunnerProxyBuilder`
+is used for this.
+
+This builder is used in the test before the driver is created. Usage example:
+
+```java
+   @Test
+    public void proxyBuilderTest() {
+        R.CONFIG.put(WebDriverConfiguration.Parameter.PROXY_TYPE.getKey(), "ZEBRUNNER", true);
+        // adding a body modification condition (replace text 'Phone finder' with 'MODIFIED PHONE FINDER')
+        ZebrunnerProxyBuilder.getInstance()
+                .addBodyModify("Phone finder", "MODIFIED PHONE FINDER")
+                .build(true);
+
+        HomePage homePage = new HomePage(getDriver());
+        homePage.open();
+        Assert.assertTrue(homePage.isPageOpened(), "Home page is not opened!");
+        Assert.assertEquals(homePage.getPhoneFinderButton().getText(), "MODIFIED PHONE FINDER",
+                "'Phone Finder' text should be modified in response.");
+    }
 ```
-proxy_host=NULL
-proxy_port=NULL
-proxy_protocols=http,https,ftp
-proxy_set_to_system=true
-browsermob_proxy=false
-browsermob_disabled_mitm=false
-browsermob_port=0
-```
-Declare proxy_host, proxy_port and proxy_protocols to send all Web and API test traffic via your static network proxy.
-Also, to enable proxy for TestNG Java process, **proxy_set_to_system** must be specifed to **true**, otherwise only WebDrivers and API clients will be proxied.
-
-Note: The above settings are mostly required to get public internet access through corporate proxies.
-
-## Raising inbuilt proxy-server (BrowserMob)
-Also, Carina can start an embedded proxy to proxy/view/filter requests/responses. There is an inbuilt library BrowserMobProxy in Carina-proxy module. Below you can find BrowserMob proxy related parameters in your **config.properties** file:
-```
-browsermob_proxy=true
-browsermob_disabled_mitm=false
-browsermob_port=0
-browsermob_ports_range=NULL
-```
-With the enabled **browsermob_proxy**, Carina will start the dedicated proxy instance on every test method. 
-
-Carina automatically detects an IP address for your local browsermob proxy and puts it into the capabilities in case if **proxy_host=NULL**. If you want to map some publicly available IP address for your browsermob proxy instance then you'll need to override it via **proxy_host** property.
-E.g. **proxy_host=myhostname** is useful in case of running maven process inside a docker container. Override the hostname, and it will be available from Selenium instance.
-
-**browsermob_port=0** means that Carina dynamically identifies a free port for a proxy session.
-
-**browsermob_ports_range=8001:8003** means that Carina will use only ports from given range for starting of browsermob sessions. That's reasonable for cases when only several ports are shared at environment and can be accessed from other machines within the network. If all ports are used then test will wait for the first freed port.
-
-**browsermob_disabled_mitm** is disabled by default. 
-
-**Important!** If you have troubles with  SSL traffic sniffing, the first thing you should do is to change **browsermob_disabled_mitm** property value!
-
-### Using proxy-server in Java code:
-
-1. Make sure the driver instance is already started:
-```
-getDriver();
-```
-Note: During the driver startup, Carina automatically starts proxy and adjusts browser capabilities to track the desired protocols. To get proxy instance for the current test/thread, you can call:
-```
-BrowserMobProxy proxy = ProxyPool.getProxy();
-```
-2. Enable the required Har capture type using:
-```
-proxy.enableHarCaptureTypes(CaptureType.REQUEST_CONTENT, CaptureType.RESPONSE_CONTENT);
-```
-There are a lot of possible content types:
-```
-CaptureType.RESPONSE_COOKIES
-CaptureType.RESPONSE_HEADERS
-CaptureType.REQUEST_HEADERS
-CaptureType.RESPONSE_CONTENT
-CaptureType.REQUEST_CONTENT
-...
-```
-They all can be set as comma-separated parameters.
-
-4. You may want to save the captured content into a .har file:
-```
-proxy.newHar(HAR_NAME);
-
-//Some testing activity...
-
-//Saving har to a file...
-File file = new File(HAR_NAME + ".har");
-Assert.assertNotNull(proxy.getHar(), "Har is NULL!");
-
-try {
-    proxy.getHar().writeTo(file);
-} catch (IOException e) {
-    e.printStackTrace();
-}
-```
-Your .har file will be created in the project root folder
-
-5. There are four methods to support request and response interception:
-
-* addRequestFilter
-* addResponseFilter
-* addFirstHttpFilterFactory
-* addLastHttpFilterFactory
-
-To add and configure content filters, look [here](https://github.com/lightbody/browsermob-proxy#http-request-manipulation).
-
-### Dealing with MITM and installing SSL certificate into your system:
-
-#### For Mac users:
-
-1. Go [here](https://github.com/lightbody/browsermob-proxy/blob/master/browsermob-core/src/main/resources/sslSupport/ca-certificate-rsa.cer) and save it as **ca-certificate-rsa.cer**.
-2. A double click creates a file. The next window should appear:
-
-![Adding ssl certificate](../img/SSLInstallStep1.png)
-
-3. After authorization, the certificate will be added into your system certificates,  but it's still untrusted:
-
-![Adding ssl certificate](../img/SSLInstallStep2.png)
-
-4. To make it trusted, double click on it. The following window should appear:
-
-![Adding ssl certificate](../img/SSLInstallStep3.png)
-
-5. First, click the drop-down menu and select **Always Trust** option. Then close the window (a second authorization will be required):
-
-![Adding ssl certificate](../img/SSLInstallStep4.png)
-
-6. Make sure the red cross on your certificate turned into a blue one:
-
-![Adding ssl certificate](../img/SSLInstallStep5.png)
-
-### Adding SSL certificate into Java keystore:
-
-If you are still receiving the following exception:
-```
-javax.net.ssl.SSLHandshakeException: sun.security.validator.ValidatorException: PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException: unable to find valid certification path to requested target
-```
-you may need to set up **ca-certificate-rsa.cer** into your Java keystore.
-
-#### For Mac and Linux users:
-
-```
-sudo keytool -importcert -alias browsermob -file pathToYourCertificateLocation/BrowserMobCertificate.crt -keystore /Library/Java/JavaVirtualMachines/jdk1.8.0_181.jdk/Contents/Home/jre/lib/security/cacerts
-```
-You will be asked to enter your Mac profile password and a Java keystore password (by default: changeit).

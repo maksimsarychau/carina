@@ -3,13 +3,14 @@
 #set( $symbol_escape = '\' )
 package ${package}.carina.demo;
 
-import com.qaprosoft.carina.core.foundation.IAbstractTest;
-import com.qaprosoft.carina.core.foundation.utils.ownership.MethodOwner;
-import com.qaprosoft.carina.core.foundation.webdriver.decorator.PageOpeningStrategy;
-import ${package}.carina.demo.gui.pages.CompareModelsPage;
-import ${package}.carina.demo.gui.pages.HomePage;
 import org.testng.annotations.Test;
 import org.testng.asserts.SoftAssert;
+
+import ${package}.carina.demo.gui.pages.common.CompareModelsPageBase;
+import ${package}.carina.demo.gui.pages.common.HomePageBase;
+import com.zebrunner.carina.core.IAbstractTest;
+import com.zebrunner.carina.core.registrar.ownership.MethodOwner;
+import com.zebrunner.carina.webdriver.decorator.PageOpeningStrategy;
 
 /**
  * This sample shows how works page opening strategy
@@ -22,57 +23,52 @@ public class PageOpeningStrategySampleTest implements IAbstractTest {
     @MethodOwner(owner = "qpsdemo")
     public void testByElementOpeningStrategy(){
 
-        SoftAssert softAssert = new SoftAssert();
-
-        HomePage homePage = new HomePage(getDriver());
+        HomePageBase homePage = initPage(getDriver(), HomePageBase.class);
         homePage.open();
-
         homePage.setPageOpeningStrategy(PageOpeningStrategy.BY_ELEMENT);
 
+        SoftAssert softAssert = new SoftAssert();
         softAssert.assertTrue(homePage.isPageOpened(),"Home page is not opened");
 
-        CompareModelsPage compareModelsPage = homePage.getFooterMenu().openComparePage();
+        CompareModelsPageBase compareModelsPage = homePage.openComparePage();
         compareModelsPage.setPageOpeningStrategy(PageOpeningStrategy.BY_ELEMENT);
 
         softAssert.assertTrue(compareModelsPage.isPageOpened(), "Compare page is not opened");
-
         softAssert.assertAll();
     }
 
     @Test
     @MethodOwner(owner = "qpsdemo")
     public void testByURLOpeningStrategy(){
-        SoftAssert softAssert = new SoftAssert();
-        HomePage homePage = new HomePage(getDriver());
+        HomePageBase homePage = initPage(getDriver(), HomePageBase.class);
         homePage.open();
-
         homePage.setPageOpeningStrategy(PageOpeningStrategy.BY_URL);
 
+        SoftAssert softAssert = new SoftAssert();
         softAssert.assertTrue(homePage.isPageOpened(),"Home page is not opened");
 
-        CompareModelsPage compareModelsPage = homePage.getFooterMenu().openComparePage();
+        CompareModelsPageBase compareModelsPage = homePage.openComparePage();
         compareModelsPage.setPageOpeningStrategy(PageOpeningStrategy.BY_URL);
 
         softAssert.assertTrue(compareModelsPage.isPageOpened(), "Compare page is not opened");
-
         softAssert.assertAll();
     }
 
     @Test
     @MethodOwner(owner = "qpsdemo")
     public void testByUrlAndElementOpeningStrategy() {
-        SoftAssert softAssert = new SoftAssert();
-        HomePage homePage = new HomePage(getDriver());
+        HomePageBase homePage = initPage(getDriver(), HomePageBase.class);
         homePage.open();
         homePage.setPageOpeningStrategy(PageOpeningStrategy.BY_URL_AND_ELEMENT);
 
+        SoftAssert softAssert = new SoftAssert();
         softAssert.assertTrue(homePage.isPageOpened(),"Home page is not opened");
 
-        CompareModelsPage compareModelsPage = homePage.getFooterMenu().openComparePage();
+        CompareModelsPageBase compareModelsPage = homePage.openComparePage();
         compareModelsPage.setPageOpeningStrategy(PageOpeningStrategy.BY_URL_AND_ELEMENT);
 
         softAssert.assertTrue(compareModelsPage.isPageOpened(), "Compare page is not opened");
-
         softAssert.assertAll();
     }
+
 }

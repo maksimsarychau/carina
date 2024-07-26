@@ -1,7 +1,3 @@
-[![Carina - Project structure](https://raw.githubusercontent.com/qaprosoft/carina/master/docs/img/video.png)](https://youtu.be/I1u07JspECE)
-
-Note: Starting from 7.0.4 consider that instead of `extends AbstractTest` we have to `implements IAbstractTest` interface
-
 Carina test project is structured as a standard Maven project:
 ```
 carina-demo
@@ -20,7 +16,7 @@ carina-demo
 
 ![src/test/java](img/002-Project-structure.png)
 
-* **src/test/resources** - contains TestNG xml files, API templates and XLS/CSV data providers etc
+* **src/test/resources** - contains TestNG xml files, API templates and XLS/CSV data providers, etc.
 
 ![src/test/resources](img/003-Project-structure.png)
 

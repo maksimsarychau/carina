@@ -1,5 +1,3 @@
-# Localization usage
-
 There is an enhanced L10N utility to support localized (L10N)  test automation testing. It can load localized resources on the fly and verify texts if needed.
 > We recommend to use existing localized resources and don't generate them by automation team!
 
@@ -40,7 +38,7 @@ private ExtendedWebElement contribElem;
 @FindBy(xpath = "//nav[@id='p-navigation']/descendant::ul[@class='vector-menu-content-list']/*")
 private List<ExtendedWebElement> pageLinks;
 ```
-Add to the project resources that corresponds to @Localized elements:
+Add to the project resources that corresponds to `@Localized` elements:
 ```
 #!The key from locale file should have Page name + name of variable that needs to be compared.
 WikipediaLocalePage.createAccountElem=fiók létrehozása
@@ -56,10 +54,10 @@ WikipediaLocalePage.pageLinks5=Tudakozó
 ```
 For elements that are operated in test and marked with `@Localized` annotation 
 Carina will automatically compare text from the page with text from your locale_xx_XX.properties file.
-Every mismatch will be collected in L10N.class. 
+Every mismatch will be collected in `L10N` class. 
 >To assert collected assertions use `L10N.assertAll()` method.
 
-If you want to do it manually use [`L10N.getText(key)`](https://github.com/zebrunner/carina-demo/blob/64b63927e8c3a1a76d5e567e28f837be82797d56/src/test/java/com/qaprosoft/carina/demo/WebLocalizationSample.java#L53)
+If you want to do it manually use [`L10N.getText(key)`](https://github.com/zebrunner/carina-demo/blob/318b5235b3d100c9f9419dcb274f1e4c25700cf0/src/test/java/com/zebrunner/carina/demo/WebLocalizationSample.java#L99)
 to get expected translations from resources:
 ```
 String welcomeText = wikipediaLocalePage.getWelcomeText();
@@ -91,7 +89,7 @@ public void testAddNewLanguages() {
 ```
 ## Finding elements with a help of locales
 
-Declare elements with [L10N](https://github.com/zebrunner/carina-demo/blob/64b63927e8c3a1a76d5e567e28f837be82797d56/src/main/java/com/qaprosoft/carina/demo/gui/pages/localizationSample/WikipediaLocalePage.java#L26) 
+Declare elements with [L10N](https://github.com/zebrunner/carina-demo/blob/318b5235b3d100c9f9419dcb274f1e4c25700cf0/src/main/java/com/zebrunner/carina/demo/gui/pages/desktop/WikipediaLocalePage.java#L57) 
 prefix where needed.
 Use key after the ":" sign in @FindBy annotations which will be replaced by actual localized translations.
 
@@ -107,4 +105,24 @@ At runtime actual translations will be used to locate elements
 xpath = "//*[text()='{L10N:HomePage.welcomeText}'"
 # actual value at run-time:
 xpath = "//*[text()='Willkommen bei Wikipedia'"
+```
+## Creation of multi-language tests
+If one or a group of tests checks several language versions of the site, then you need to do the following:
+1. [Optional] if you need to change the language version of the site, you can overwrite the locale parameter:
+```
+# overwrites locale value with de_DE for this test only
+R.CONFIG.put("locale", "de_DE", true);
+```
+2. Call the setLocale function and pass the locale to it:
+```
+# overwrites the default locale in the file to 'de_DE'
+L10N.setLocale("de_DE")
+```
+3. Call the load function to download the localized resource of the current locale:
+```
+L10N.load();
+```
+4. When you need to get a list of locale errors, call assertAll:
+```
+L10N.assertAll();
 ```

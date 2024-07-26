@@ -1,14 +1,11 @@
-
-[![Carina - Getting started](https://raw.githubusercontent.com/qaprosoft/carina/master/docs/img/video.png)](https://youtu.be/UtY-KLFnmI8)
-
 * Install and configure JDK 11+
 * Install and configure [Apache Maven 3.6.0+](http://maven.apache.org/)
 * Download the latest version of [Eclipse](http://www.eclipse.org/downloads/) and install [TestNG plugin](http://testng.org/doc/download.html), maven-dependency-plugin connector and optionally lombok
 
 ### Generating project
-The easiest way to initialize a new project is to use Carina archetype, you will get correct project structure along with test samples. Run below command from any empty folder:
+The easiest way to initialize a new project is to use Carina archetype, you will get correct project structure along with test samples. Run below command from any <b>empty folder</b>:
 ```
-mvn archetype:generate -DarchetypeGroupId=com.qaprosoft \
+mvn archetype:generate -DarchetypeGroupId=com.zebrunner \
                        -DarchetypeArtifactId=carina-archetype \
                        -DarchetypeVersion=RELEASE \
                        -DgroupId=<your_groupId> \
@@ -51,6 +48,8 @@ If any attribute contains spaces, it should be set in quotes (e.g.: -Dname="Hell
 		<td>1.0</td>
 	</tr>
 </table>
+
+> To generate Cucumber Demo project use `-DarchetypeArtifactId=carina-cucumber-archetype` in above maven command.
 
 ### Import to Eclipse
 If the generation is successfully complete, you will see a new project folder with a name equal to the artifactId attribute specified during the generation, so navigate to this folder (where pom.xml is located) and execute the following Maven task:
